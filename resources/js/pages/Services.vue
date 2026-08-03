@@ -1,5 +1,7 @@
 <template>
-    <main class="min-h-screen bg-gradient-to-b from-[#EAF3FF] to-white">
+    <main 
+    class="min-h-screen bg-gradient-to-b from-[#EAF3FF] to-white"
+   style="background: url('/images/bg2.png') no-repeat center center / cover fixed;">
 
         <section class="max-w-[1200px] mx-auto px-10 py-10">
 
@@ -66,8 +68,15 @@
             </div>
 
             <!-- Grid Layanan -->
-            <div class="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
+            <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
 
+                <ServiceListCard
+                    v-for="service in filteredServices"
+                    :key="service.id"
+                    :title="service.title"
+                    :description="service.description"
+                    :link="service.link"
+                />
                 <ServiceListCard
                     v-for="service in filteredServices"
                     :key="service.id"
@@ -107,17 +116,24 @@ const filters = [
 const services = ref([
     {
         id: 1,
-        title: 'Nama Kategori Layanan',
+        title: 'Ini contoh kategori Eksternal',
         description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua....',
         category: 'eksternal',
         link: '/layanan/1',
     },
     {
         id: 2,
-        title: 'Nama Kategori Layanan',
+        title: 'Ini contoh kategori Internal',
         description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua....',
         category: 'internal',
         link: '/layanan/2',
+    },
+    {
+        id: 3,
+        title: 'Ini kategori umum',
+        description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua....',
+        category: 'semua',
+        link: '/layanan/3',
     },
 ])
 
