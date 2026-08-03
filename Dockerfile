@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     curl \
     libzip-dev \
+    libsqlite3-dev \
     zip \
     nodejs \
     npm \
