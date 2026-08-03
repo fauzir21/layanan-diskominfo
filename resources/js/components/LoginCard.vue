@@ -108,9 +108,12 @@
 
             Belum punya akun?
 
-            <span class="font-semibold text-[#005AA7] cursor-pointer">
+            <router-link
+            to="/register"
+            class="font-semibold text-[#005AA7] cursor-pointer hover:underline"
+            >
                 Daftar Sekarang
-            </span>
+            </router-link>
 
         </div>
 

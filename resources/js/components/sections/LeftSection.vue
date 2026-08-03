@@ -63,14 +63,15 @@
             <!-- Button -->
 
             <div class="mt-8 flex justify-center">
-                <button
+                <router-link
+                    to="/layanan"
                     class="bg-[#0A66C2] hover:bg-[#0959aa] transition px-6 py-3 rounded-2xl font-semibold flex items-center gap-3 shadow-lg"
                 >
                     Lihat Semua Layanan
 
                     <i class="bi bi-arrow-right"></i>
 
-                </button>
+                </router-link>
             </div>
 
         </div>

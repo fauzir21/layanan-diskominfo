@@ -4,7 +4,7 @@
         style="background-image: url('/images/bg.png');"
     >
         <!-- Overlay -->
-        <div class="absolute inset-0 bg-[#0058A8]/40"></div
+        <div class="absolute inset-0 bg-[#0058A8]/20"></div
 
         <!-- Container -->
         <div
