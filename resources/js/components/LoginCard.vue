@@ -65,12 +65,12 @@
 
                 </label>
 
-                <a
-                    href="#"
-                    class="text-sm text-blue-600 hover:underline"
+                <button
+                @click="showForgot = true"
+                class="text-sm text-blue-600 hover:underline"
                 >
                     Lupa Password?
-                </a>
+                </button>
 
             </div>
 
@@ -116,7 +116,18 @@
 
     </div>
 
+    <ForgotPasswordModal
+        :show="showForgot"
+        @close="showForgot = false"
+    />
 </template>
 
 <script setup>
+
+import { ref } from 'vue'
+
+import ForgotPasswordModal from './ForgotPasswordModal.vue'
+
+const showForgot = ref(false)
+
 </script>
