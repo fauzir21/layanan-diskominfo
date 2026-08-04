@@ -1,7 +1,5 @@
 <template>
-    <main 
-    class="min-h-screen bg-gradient-to-b from-[#EAF3FF] to-white"
-   style="background: url('/images/bg2.png') no-repeat center center / cover fixed;">
+    <main class="min-h-screen bg-gradient-to-b from-[#EAF3FF] to-white">
 
         <section class="max-w-[1200px] mx-auto px-10 py-10">
 
@@ -67,28 +65,27 @@
 
             </div>
 
+            <!-- Loading -->
+            <p v-if="loading" class="mt-10 text-center text-gray-500">Memuat layanan...</p>
+
             <!-- Grid Layanan -->
-            <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
+            <div
+                v-else
+                class="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center"
+            >
 
                 <ServiceListCard
-                    v-for="service in filteredServices"
+                    v-for="service in services"
                     :key="service.id"
-                    :title="service.title"
-                    :description="service.description"
-                    :link="service.link"
-                />
-                <ServiceListCard
-                    v-for="service in filteredServices"
-                    :key="service.id"
-                    :title="service.title"
-                    :description="service.description"
-                    :link="service.link"
+                    :title="service.nama"
+                    :description="service.deskripsi"
+                    :link="`/layanan/${service.slug}`"
                 />
 
             </div>
 
             <p
-                v-if="filteredServices.length === 0"
+                v-if="!loading && services.length === 0"
                 class="mt-10 text-center text-gray-500"
             >
                 Tidak ada layanan yang ditemukan.
@@ -100,11 +97,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, watch, onMounted } from 'vue'
+import axios from '../lib/axios'
 import ServiceListCard from '../components/ServiceListCard.vue'
 
 const search = ref('')
 const activeFilter = ref('semua')
+const services = ref([])
+const loading = ref(true)
 
 const filters = [
     { label: 'Semua Layanan', value: 'semua' },
@@ -112,36 +112,28 @@ const filters = [
     { label: 'Internal', value: 'internal' },
 ]
 
-// Ganti dummy data ini nanti pakai data asli dari backend/API
-const services = ref([
-    {
-        id: 1,
-        title: 'Ini contoh kategori Eksternal',
-        description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua....',
-        category: 'eksternal',
-        link: '/layanan/1',
-    },
-    {
-        id: 2,
-        title: 'Ini contoh kategori Internal',
-        description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua....',
-        category: 'internal',
-        link: '/layanan/2',
-    },
-    {
-        id: 3,
-        title: 'Ini kategori umum',
-        description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua....',
-        category: 'semua',
-        link: '/layanan/3',
-    },
-])
+async function fetchServices() {
+    loading.value = true
 
-const filteredServices = computed(() => {
-    return services.value.filter((service) => {
-        const matchFilter = activeFilter.value === 'semua' || service.category === activeFilter.value
-        const matchSearch = service.title.toLowerCase().includes(search.value.toLowerCase())
-        return matchFilter && matchSearch
-    })
+    try {
+        const response = await axios.get('/api/layanan', {
+            params: {
+                kategori: activeFilter.value,
+                search: search.value,
+            },
+        })
+        services.value = response.data.data
+    } finally {
+        loading.value = false
+    }
+}
+
+let debounceTimer = null
+
+watch([activeFilter, search], () => {
+    clearTimeout(debounceTimer)
+    debounceTimer = setTimeout(fetchServices, 300)
 })
+
+onMounted(fetchServices)
 </script>

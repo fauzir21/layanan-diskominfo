@@ -24,80 +24,97 @@
 
             </div>
 
-            <!-- Email -->
-            <div class="mt-3">
-
-                <label class="text-sm text-gray-700">
-                    Email
-                </label>
-
-                <input
-                    type="email"
-                    placeholder="Masukkan email"
-                    class="mt-2 w-full h-11 rounded-xl border bg-white px-4 outline-none focus:border-blue-500"
-                />
-
+            <!-- Pesan error -->
+            <div
+                v-if="errorMessage"
+                class="mt-4 rounded-xl bg-red-50 border border-red-300 text-red-700 px-4 py-3 text-sm"
+            >
+                {{ errorMessage }}
             </div>
 
-            <!-- Password -->
-            <div class="mt-2">
+            <form @submit.prevent="handleLogin">
 
-                <label class="text-sm text-gray-700">
-                    Password
-                </label>
+                <!-- Email -->
+                <div class="mt-3">
 
-                <input
-                    type="password"
-                    placeholder="Masukkan password"
-                    class="mt-2 w-full h-11 rounded-xl border bg-white px-4 outline-none focus:border-blue-500"
-                />
+                    <label class="text-sm text-gray-700">
+                        Email
+                    </label>
 
-            </div>
+                    <input
+                        v-model="form.email"
+                        type="email"
+                        placeholder="Masukkan email"
+                        class="mt-2 w-full h-11 rounded-xl border bg-white px-4 outline-none focus:border-blue-500"
+                    />
 
-            <!-- Remember -->
-            <div class="flex items-center justify-between mt-5">
+                </div>
 
-                <label class="flex items-center gap-2 text-sm">
+                <!-- Password -->
+                <div class="mt-2">
 
-                    <input type="checkbox">
+                    <label class="text-sm text-gray-700">
+                        Password
+                    </label>
 
-                    Ingat Saya
+                    <input
+                        v-model="form.password"
+                        type="password"
+                        placeholder="Masukkan password"
+                        class="mt-2 w-full h-11 rounded-xl border bg-white px-4 outline-none focus:border-blue-500"
+                    />
 
-                </label>
+                </div>
 
-                <button
-                @click="showForgot = true"
-                class="text-sm text-blue-600 hover:underline"
+                <!-- Remember -->
+                <div class="flex items-center justify-between mt-5">
+
+                    <label class="flex items-center gap-2 text-sm">
+
+                        <input type="checkbox">
+
+                        Ingat Saya
+
+                    </label>
+
+                    <button
+                        type="button"
+                        @click="showForgot = true"
+                        class="text-sm text-blue-600 hover:underline"
+                    >
+                        Lupa Password?
+                    </button>
+
+                </div>
+
+                <!-- Captcha -->
+                <div
+                    class="mt-3 h-20 rounded-xl bg-white border border-gray-300 flex items-center justify-center"
                 >
-                    Lupa Password?
+
+                    <span class="text-3xl font-bold tracking-widest">
+                        A7X92
+                    </span>
+
+                </div>
+
+                <!-- Captcha Input -->
+                <input
+                    type="text"
+                    placeholder="Masukkan Captcha"
+                    class="mt-2 w-full h-11 rounded-xl border bg-gray-300 px-4 outline-none focus:border-blue-500"
+                />
+
+                <!-- Login -->
+                <button
+                    type="submit"
+                    :disabled="loading"
+                    class="mt-2 w-full h-11 rounded-xl bg-[#005AA7] text-white font-semibold hover:bg-[#004b8c] transition disabled:opacity-50"
+                >
+                    {{ loading ? 'Memproses...' : 'Masuk' }}
                 </button>
 
-            </div>
-
-            <!-- Captcha -->
-            <div
-                class="mt-3 h-20 rounded-xl bg-white border border-gray-300 flex items-center justify-center"
-            >
-
-                <span class="text-3xl font-bold tracking-widest">
-                    A7X92
-                </span>
-
-            </div>
-
-            <!-- Captcha Input -->
-            <input
-                type="text"
-                placeholder="Masukkan Captcha"
-                class="mt-2 w-full h-11 rounded-xl border bg-gray-300 px-4 outline-none focus:border-blue-500"
-            />
-
-            <!-- Login -->
-            <button
-                class="mt-2 w-full h-11 rounded-xl bg-[#005AA7] text-white font-semibold hover:bg-[#004b8c] transition"
-            >
-                Masuk
-            </button>
+            </form>
 
         </div>
 
@@ -109,8 +126,8 @@
             Belum punya akun?
 
             <router-link
-            to="/register"
-            class="font-semibold text-[#005AA7] cursor-pointer hover:underline"
+                to="/register"
+                class="font-semibold text-[#005AA7] cursor-pointer hover:underline"
             >
                 Daftar Sekarang
             </router-link>
@@ -123,14 +140,40 @@
         :show="showForgot"
         @close="showForgot = false"
     />
+
 </template>
 
 <script setup>
-
-import { ref } from 'vue'
-
+import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from '../lib/axios'
+import { useAuthStore } from '../stores/auth'
 import ForgotPasswordModal from './ForgotPasswordModal.vue'
 
-const showForgot = ref(false)
+const router = useRouter()
+const authStore = useAuthStore()
 
+const showForgot = ref(false)
+const loading = ref(false)
+const errorMessage = ref('')
+
+const form = reactive({
+    email: '',
+    password: '',
+})
+
+async function handleLogin() {
+    errorMessage.value = ''
+    loading.value = true
+
+    try {
+        const response = await axios.post('/api/login', form)
+        authStore.setUser(response.data.user)
+        router.push('/')
+    } catch (error) {
+        errorMessage.value = error.response?.data?.message || 'Terjadi kesalahan, silakan coba lagi.'
+    } finally {
+        loading.value = false
+    }
+}
 </script>
