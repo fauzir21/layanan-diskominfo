@@ -1,7 +1,7 @@
 <template>
 
     <div
-        class="w-[380px] rounded-[28px] overflow-hidden bg-white/25 backdrop-blur-xl border border-white/40 shadow-2xl"
+        class="w-full max-w-[380px] rounded-[28px] overflow-hidden bg-white/25 backdrop-blur-xl border border-white/40 shadow-2xl"
     >
 
         <!-- Body -->

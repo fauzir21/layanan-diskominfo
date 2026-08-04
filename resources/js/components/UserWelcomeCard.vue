@@ -1,6 +1,6 @@
 <template>
     <div
-        class="w-[380px] rounded-[28px] overflow-hidden bg-white/25 backdrop-blur-xl border border-white/40 shadow-2xl px-8 py-10 text-center"
+        class="w-full max-w-[380px] rounded-[28px] overflow-hidden bg-white/25 backdrop-blur-xl border border-white/40 shadow-2xl px-8 py-10 text-center"
     >
 
         <p class="text-gray-700 text-sm">
