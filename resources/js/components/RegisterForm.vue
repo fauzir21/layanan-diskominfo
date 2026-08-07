@@ -1,12 +1,12 @@
 <template>
 
 <div
-class="bg-white rounded-[40px] shadow-2xl w-[1080px] px-16 py-10">
+class="bg-white rounded-[32px] shadow-2xl w-full max-w-[820px] px-10 sm:px-16 py-9">
 
     <!-- Judul -->
 
     <h1
-    class="text-center text-4xl font-semibold text-gray-800">
+    class="text-center text-2xl sm:text-3xl font-semibold text-gray-800">
 
         Buat Akun Baru
 
@@ -33,13 +33,13 @@ class="bg-white rounded-[40px] shadow-2xl w-[1080px] px-16 py-10">
     <form
     v-if="!successMessage"
     @submit.prevent="handleSubmit"
-    class="mt-10 space-y-6">
+    class="mt-6 space-y-5">
 
         <!-- Nama -->
 
         <div>
 
-            <label class="font-medium text-gray-800 block mb-2">
+            <label class="text-sm font-medium text-gray-800 block mb-2">
 
                 Nama Lengkap
 
@@ -49,9 +49,9 @@ class="bg-white rounded-[40px] shadow-2xl w-[1080px] px-16 py-10">
             v-model="form.name"
             type="text"
             placeholder="Masukan Nama Lengkap Anda"
-            class="w-full h-14 rounded-2xl bg-gray-100 border border-gray-200 px-6 text-gray-700 placeholder-gray-500 outline-none focus:border-blue-500"/>
+            class="w-full h-12 rounded-xl bg-gray-100 border border-gray-300 px-5 text-gray-700 placeholder-gray-500 outline-none focus:border-blue-500"/>
 
-            <p v-if="errors.name" class="text-sm text-red-500 mt-2 ml-1">
+            <p v-if="errors.name" class="text-sm text-red-500 mt-1 ml-1">
                 {{ errors.name[0] }}
             </p>
 
@@ -61,7 +61,7 @@ class="bg-white rounded-[40px] shadow-2xl w-[1080px] px-16 py-10">
 
         <div>
 
-            <label class="font-medium text-gray-800 block mb-2">
+            <label class="text-sm font-medium text-gray-800 block mb-2">
 
                 Kategori Pengguna
 
@@ -69,7 +69,7 @@ class="bg-white rounded-[40px] shadow-2xl w-[1080px] px-16 py-10">
 
             <select
             v-model="form.kategori_pengguna"
-            class="w-full h-14 rounded-2xl bg-gray-100 border border-gray-200 px-6 text-gray-500 outline-none focus:border-blue-500">
+            class="w-full h-12 rounded-xl bg-gray-100 border border-gray-300 px-5 text-gray-500 outline-none focus:border-blue-500">
 
                 <option disabled value="">
 
@@ -85,7 +85,7 @@ class="bg-white rounded-[40px] shadow-2xl w-[1080px] px-16 py-10">
 
             </select>
 
-            <p v-if="errors.kategori_pengguna" class="text-sm text-red-500 mt-2 ml-1">
+            <p v-if="errors.kategori_pengguna" class="text-sm text-red-500 mt-1 ml-1">
                 {{ errors.kategori_pengguna[0] }}
             </p>
 
@@ -95,7 +95,7 @@ class="bg-white rounded-[40px] shadow-2xl w-[1080px] px-16 py-10">
 
         <div>
 
-            <label class="font-medium text-gray-800 block mb-2">
+            <label class="text-sm font-medium text-gray-800 block mb-2">
 
                 Email
 
@@ -105,9 +105,13 @@ class="bg-white rounded-[40px] shadow-2xl w-[1080px] px-16 py-10">
             v-model="form.email"
             type="email"
             placeholder="Masukan Email Anda"
-            class="w-full h-14 rounded-2xl bg-gray-100 border border-gray-200 px-6 text-gray-700 placeholder-gray-500 outline-none focus:border-blue-500"/>
+            class="w-full h-12 rounded-xl bg-gray-100 border border-gray-300 px-5 text-gray-700 placeholder-gray-500 outline-none focus:border-blue-500"/>
 
-            <p v-if="errors.email" class="text-sm text-red-500 mt-2 ml-1">
+            <p class="text-sm text-gray-500 mt-2 ml-1">
+                *Masukan Nama Lengkap Anda
+            </p>
+
+            <p v-if="errors.email" class="text-sm text-red-500 mt-1 ml-1">
                 {{ errors.email[0] }}
             </p>
 
@@ -116,11 +120,11 @@ class="bg-white rounded-[40px] shadow-2xl w-[1080px] px-16 py-10">
         <!-- Password -->
 
         <div
-        class="grid grid-cols-2 gap-10">
+        class="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-10">
 
             <div>
 
-                <label class="font-medium text-gray-800 block mb-2">
+                <label class="text-sm font-medium text-gray-800 block mb-2">
 
                     Password
 
@@ -130,9 +134,9 @@ class="bg-white rounded-[40px] shadow-2xl w-[1080px] px-16 py-10">
                 v-model="form.password"
                 type="password"
                 placeholder="Buat Password"
-                class="w-full h-14 rounded-2xl bg-gray-100 border border-gray-200 px-6 text-gray-700 placeholder-gray-500 outline-none focus:border-blue-500"/>
+                class="w-full h-12 rounded-xl bg-gray-100 border border-gray-300 px-5 text-gray-700 placeholder-gray-500 outline-none focus:border-blue-500"/>
 
-                <p v-if="errors.password" class="text-sm text-red-500 mt-2 ml-1">
+                <p v-if="errors.password" class="text-sm text-red-500 mt-1 ml-1">
                     {{ errors.password[0] }}
                 </p>
 
@@ -140,7 +144,7 @@ class="bg-white rounded-[40px] shadow-2xl w-[1080px] px-16 py-10">
 
             <div>
 
-                <label class="font-medium text-gray-800 block mb-2">
+                <label class="text-sm font-medium text-gray-800 block mb-2">
 
                     Konfimasi Password
 
@@ -150,36 +154,63 @@ class="bg-white rounded-[40px] shadow-2xl w-[1080px] px-16 py-10">
                 v-model="form.password_confirmation"
                 type="password"
                 placeholder="Konfirmasi Password"
-                class="w-full h-14 rounded-2xl bg-gray-100 border border-gray-200 px-6 text-gray-700 placeholder-gray-500 outline-none focus:border-blue-500"/>
+                class="w-full h-12 rounded-xl bg-gray-100 border border-gray-300 px-5 text-gray-700 placeholder-gray-500 outline-none focus:border-blue-500"/>
 
             </div>
 
         </div>
 
-        <!-- Button -->
+        <!-- Captcha -->
 
-        <div class="flex items-center justify-between">
+        <div>
 
-            <button
-            type="submit"
-            :disabled="loading"
-            class="text-[16px] px-10 h-12 rounded-2xl bg-blue-600 text-white font-bold text-lg hover:bg-blue-700 transition disabled:opacity-50">
+            <label class="text-sm font-medium text-gray-800 block mb-2">
 
-                {{ loading ? 'Memproses...' : 'Daftar Akun' }}
+                Captcha
 
-            </button>
+            </label>
 
-            <!-- Back -->
+            <div
+            class="w-[220px] h-24 border border-gray-300 rounded-2xl flex items-center justify-center bg-white">
 
-            <router-link
-            to="/"
-            class="inline-flex items-center gap-2 text-blue-600 hover:underline font-medium">
+                <span
+                class="text-4xl font-black tracking-wide font-mono">
 
-                ← Kembali ke Beranda
+                    Captcha
 
-            </router-link>
+                </span>
+
+            </div>
 
         </div>
+
+        <!-- Input Captcha -->
+
+        <input
+        type="text"
+        placeholder="Masukan Kode Captcha"
+        class="w-full h-12 rounded-xl bg-gray-100 border border-gray-300 px-5 text-gray-700 placeholder-gray-500 outline-none focus:border-blue-500"/>
+
+        <!-- Button -->
+
+        <button
+        type="submit"
+        :disabled="loading"
+        class="w-full h-12 rounded-2xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition disabled:opacity-50">
+
+            {{ loading ? 'Memproses...' : 'Daftar Akun' }}
+
+        </button>
+
+        <!-- Back -->
+
+        <router-link
+        to="/"
+        class="inline-flex items-center gap-2 text-blue-600 hover:underline font-medium">
+
+            ← Kembali ke Beranda
+
+        </router-link>
 
     </form>
 

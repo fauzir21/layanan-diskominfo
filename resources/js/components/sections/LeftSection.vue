@@ -49,19 +49,38 @@
             <SearchBar />
 
             <!-- Service Card -->
-            <div class="flex flex-wrap gap-4 sm:gap-5 mt-4">
+            <div class="flex flex-wrap gap-4 mt-4">
 
-                <ServiceCard />
+                <p v-if="loading" class="text-white/80 text-sm">Memuat layanan...</p>
 
-                <ServiceCard />
+                <ServiceListCard
+                    v-else
+                    v-for="service in services"
+                    :key="service.id"
+                    compact
+                    :title="service.nama"
+                    :description="service.deskripsi"
+                    :link="`/layanan/${service.slug}`"
+                />
 
-                <ServiceCard />
+                <p v-if="!loading && services.length === 0" class="text-white/80 text-sm">
+                    Belum ada layanan.
+                </p>
 
             </div>
 
             <!-- Button -->
 
-            <div class="mt-8 flex justify-center lg:justify-start">
+            <div class="mt-8 flex flex-wrap justify-center lg:justify-start gap-4">
+                <router-link
+                    to="/lacak-permohonan"
+                    class="bg-[#0A66C2] hover:bg-[#0959aa] transition px-6 py-3 rounded-2xl font-semibold flex items-center gap-3 shadow-lg"
+                >
+                    <i class="bi bi-arrow-left"></i>
+
+                    Lacak Permohonan
+                </router-link>
+
                 <router-link
                     to="/layanan"
                     class="bg-[#0A66C2] hover:bg-[#0959aa] transition px-6 py-3 rounded-2xl font-semibold flex items-center gap-3 shadow-lg"
@@ -79,6 +98,20 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
+import axios from '../../lib/axios'
 import SearchBar from '../SearchBar.vue'
-import ServiceCard from '../ServiceCard.vue'
+import ServiceListCard from '../ServiceListCard.vue'
+
+const services = ref([])
+const loading = ref(true)
+
+onMounted(async () => {
+    try {
+        const response = await axios.get('/api/layanan')
+        services.value = response.data.data.slice(0, 3)
+    } finally {
+        loading.value = false
+    }
+})
 </script>

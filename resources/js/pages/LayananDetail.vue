@@ -1,56 +1,103 @@
 <template>
-    <main class="min-h-screen bg-gradient-to-b from-[#EAF3FF] to-white py-10">
+    <main
+        class="min-h-screen bg-gradient-to-b from-[#EAF3FF] to-white"
+    >
 
-        <section class="max-w-[800px] mx-auto px-6">
+        <div class="max-w-[1180px] mx-auto px-6 sm:px-10 pt-8">
 
-            <router-link
-                to="/layanan"
-                class="inline-flex items-center gap-2 text-blue-600 hover:underline font-medium"
-            >
-                ← Kembali ke Daftar Layanan
-            </router-link>
+            <!-- Header -->
+            <div class="flex items-center gap-4">
 
-            <div v-if="loading" class="mt-10 text-center text-gray-500">
+                <img
+                    src="/public/images/logo-kota-bogor.png"
+                    alt="Logo Kota Bogor"
+                    class="w-10 h-10 object-contain shrink-0"
+                />
+
+                <router-link
+                    to="/layanan"
+                    class="inline-flex items-center gap-2 text-blue-600 hover:underline font-medium"
+                >
+                    ← Kembali Ke Daftar Layanan
+                </router-link>
+
+            </div>
+
+            <div v-if="loading" class="mt-16 text-center text-gray-500">
                 Memuat...
             </div>
 
-            <div v-else-if="!layanan" class="mt-10 text-center text-gray-500">
+            <div v-else-if="!layanan" class="mt-16 text-center text-gray-500">
                 Layanan tidak ditemukan.
             </div>
 
-            <div v-else class="mt-6 bg-white rounded-[32px] shadow-lg p-10">
+            <template v-else>
 
-                <span
-                    class="text-xs font-semibold px-3 py-1 rounded-full"
-                    :class="layanan.kategori === 'eksternal' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'"
-                >
-                    {{ layanan.kategori }}
-                </span>
+                <!-- Judul -->
+                <h1 class="mt-6 text-4xl sm:text-5xl font-extrabold text-[#0A66C2] text-center">
+                    {{ layanan.nama }}
+                </h1>
 
-                <h1 class="mt-4 text-3xl font-bold text-gray-800">{{ layanan.nama }}</h1>
+                <p class="mt-3 text-center text-gray-700">
+                    Temukan Layanan yang Anda butuhkan dan lihat persyaratan yang di perlukan
+                </p>
 
-                <p class="mt-4 text-gray-600 leading-7">{{ layanan.deskripsi }}</p>
+                <!-- Card -->
+                <div class="mt-8 bg-white rounded-[32px] shadow-lg px-8 sm:px-12 py-10 mb-12">
 
-                <div class="mt-8">
-                    <h2 class="text-lg font-semibold text-gray-800">Persyaratan</h2>
+                    <h2 class="text-xl font-bold text-gray-800">Deskripsi layanan</h2>
 
-                    <ul v-if="layanan.persyaratans?.length" class="mt-3 space-y-2">
-                        <li
+                    <p class="mt-3 text-gray-700 leading-7">
+                        {{ layanan.deskripsi }}
+                    </p>
+
+                    <hr class="my-8 border-gray-200">
+
+                    <h2 class="text-xl font-bold text-gray-800">Persyaratan Berkas</h2>
+
+                    <div
+                        v-if="layanan.persyaratans?.length"
+                        class="mt-5 flex flex-wrap gap-5"
+                    >
+                        <div
                             v-for="syarat in layanan.persyaratans"
                             :key="syarat.id"
-                            class="flex items-start gap-2 text-gray-700"
+                            class="w-full sm:w-[260px] border border-gray-300 rounded-2xl p-4 flex gap-3"
                         >
-                            <i class="bi bi-check-circle-fill text-green-600 mt-1"></i>
-                            {{ syarat.nama_syarat }}
-                        </li>
-                    </ul>
+                            <i class="bi bi-file-earmark-arrow-up-fill text-[32px] text-[#0A66C2] shrink-0"></i>
+
+                            <div>
+                                <h3 class="font-semibold text-gray-800">{{ syarat.nama_syarat }}</h3>
+                                <p class="text-red-500 text-sm font-medium">Wajib</p>
+
+                                <div class="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+                                    <span class="inline-flex items-center gap-1">
+                                        <i class="bi bi-file-earmark"></i> Format: PDF/JPG
+                                    </span>
+                                    <span class="inline-flex items-center gap-1">
+                                        <i class="bi bi-file-earmark"></i> Maks: 2MB
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <p v-else class="mt-3 text-gray-500">Belum ada persyaratan yang ditentukan.</p>
+
+                    <div class="mt-8 flex justify-end">
+                        <button
+                            class="inline-flex items-center gap-2 bg-[#0A66C2] hover:bg-[#0959aa] transition text-white font-semibold px-6 py-3 rounded-xl"
+                        >
+                            Ajukan Permohonan
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+
                 </div>
 
-            </div>
+            </template>
 
-        </section>
+        </div>
 
     </main>
 </template>
