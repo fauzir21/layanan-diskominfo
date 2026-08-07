@@ -1,17 +1,18 @@
 FROM php:8.4-fpm
 
 # Install dependency sistem + ekstensi PHP yang dibutuhkan
-# (pdo_sqlite ditambahkan karena app pakai DB_CONNECTION=sqlite)
+# (pdo_sqlite buat local/testing, pdo_pgsql buat production di Railway)
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
     curl \
     libzip-dev \
     libsqlite3-dev \
+    libpq-dev \
     zip \
     nodejs \
     npm \
-    && docker-php-ext-install pdo pdo_sqlite zip \
+    && docker-php-ext-install pdo pdo_sqlite pdo_pgsql zip \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy composer dari image resmi
@@ -27,7 +28,8 @@ RUN composer install --no-dev --optimize-autoloader
 # Install dependency JS & build asset Vite/Vue
 RUN npm install && npm run build
 
-# Pastikan file database SQLite ada
+# Pastikan file database SQLite ada (tetap disiapin buat jaga-jaga/fallback,
+# walau production sekarang pakai PostgreSQL dari Railway)
 RUN mkdir -p database && touch database/database.sqlite
 
 # PENTING: folder-folder ini di-exclude di .dockerignore (storage/framework,
@@ -44,9 +46,8 @@ RUN mkdir -p storage/framework/cache/data \
 RUN chown -R www-data:www-data storage bootstrap/cache database \
     && chmod -R 775 storage bootstrap/cache database
 
-# Render biasanya kasih PORT via env var, default 10000 kalau dites lokal
 EXPOSE 10000
 
 # Jalankan migration dulu (biar tabel selalu ready), baru start server
-# pakai $PORT dari Render, bukan port hardcode
+# pakai $PORT dari Railway, bukan port hardcode
 CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
