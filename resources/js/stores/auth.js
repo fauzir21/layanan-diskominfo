@@ -21,12 +21,20 @@ export const useAuthStore = defineStore('auth', () => {
 
     function setUser(userData) {
         user.value = userData
+        isLoading.value = false
     }
 
     async function logout() {
         await axios.post('/api/logout')
         user.value = null
+        isLoading.value = false
     }
 
-    return { user, isLoading, fetchUser, setUser, logout }
+    return {
+        user,
+        isLoading,
+        fetchUser,
+        setUser,
+        logout,
+    }
 })

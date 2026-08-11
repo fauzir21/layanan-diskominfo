@@ -80,10 +80,12 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { useAuthStore } from '../../stores/auth'
-import StatCard from '../../components/dashboard/StatCard.vue'
+import { useDashboard } from '../../composables/useDashboard'
 
 const authStore = useAuthStore()
+
 const {
     data,
     loading,
