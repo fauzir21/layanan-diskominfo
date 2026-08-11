@@ -3,7 +3,7 @@
 <div
 :class="[
     'rounded-[24px] bg-white shadow-md',
-    compact ? 'w-[220px] p-5' : 'w-[380px] p-7'
+    compact ? 'w-[205px] p-5' : 'w-[360px] p-7'
 ]">
 
     <i

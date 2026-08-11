@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Layanan;
+use App\Models\Persyaratan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -10,10 +11,11 @@ class LayananController extends Controller
 {
     /**
      * List publik — bisa difilter kategori & dicari.
+     * Cuma nampilin yang statusnya aktif.
      */
     public function index(Request $request)
     {
-        $query = Layanan::query();
+        $query = Layanan::query()->where('status', 'aktif');
 
         if ($request->filled('kategori') && $request->kategori !== 'semua') {
             $query->where('kategori', $request->kategori);
@@ -34,7 +36,8 @@ class LayananController extends Controller
     public function show($slug)
     {
         $layanan = Layanan::where('slug', $slug)
-            ->with(['persyaratans' => fn ($q) => $q->orderBy('urutan')])
+            ->where('status', 'aktif')
+            ->with('persyaratans')
             ->firstOrFail();
 
         return response()->json(['data' => $layanan]);
@@ -49,6 +52,7 @@ class LayananController extends Controller
             'nama' => ['required', 'string', 'max:255'],
             'deskripsi' => ['required', 'string'],
             'kategori' => ['required', 'in:eksternal,internal'],
+            'status' => ['nullable', 'in:aktif,nonaktif'],
             'persyaratans' => ['array'],
             'persyaratans.*' => ['string', 'max:255'],
         ]);
@@ -58,6 +62,7 @@ class LayananController extends Controller
             'slug' => Str::slug($validated['nama']).'-'.Str::random(5),
             'deskripsi' => $validated['deskripsi'],
             'kategori' => $validated['kategori'],
+            'status' => $validated['status'] ?? 'aktif',
         ]);
 
         $this->syncPersyaratans($layanan, $validated['persyaratans'] ?? []);
@@ -77,6 +82,7 @@ class LayananController extends Controller
             'nama' => ['required', 'string', 'max:255'],
             'deskripsi' => ['required', 'string'],
             'kategori' => ['required', 'in:eksternal,internal'],
+            'status' => ['nullable', 'in:aktif,nonaktif'],
             'persyaratans' => ['array'],
             'persyaratans.*' => ['string', 'max:255'],
         ]);
@@ -85,6 +91,7 @@ class LayananController extends Controller
             'nama' => $validated['nama'],
             'deskripsi' => $validated['deskripsi'],
             'kategori' => $validated['kategori'],
+            'status' => $validated['status'] ?? $layanan->status,
         ]);
 
         $this->syncPersyaratans($layanan, $validated['persyaratans'] ?? []);
@@ -97,6 +104,8 @@ class LayananController extends Controller
 
     /**
      * Hapus layanan (admin only).
+     * Persyaratan-nya sendiri TIDAK ikut kehapus (masih bisa dipakai layanan lain),
+     * cuma "kaitan"-nya (baris di tabel pivot) yang otomatis hilang.
      */
     public function destroy(Layanan $layanan)
     {
@@ -108,18 +117,23 @@ class LayananController extends Controller
     }
 
     /**
-     * Ganti seluruh daftar persyaratan punya sebuah layanan
-     * (hapus yang lama, bikin ulang sesuai urutan yang dikirim).
+     * Sinkronin daftar persyaratan (berupa nama) ke sebuah layanan.
+     * Kalau nama persyaratan udah pernah ada (dipakai layanan lain), dipakai ulang.
+     * Kalau belum ada, dibikin baru otomatis (default wajib=true, tipe=file).
      */
-    private function syncPersyaratans(Layanan $layanan, array $persyaratans): void
+    private function syncPersyaratans(Layanan $layanan, array $namaPersyaratans): void
     {
-        $layanan->persyaratans()->delete();
+        $syncData = [];
 
-        foreach ($persyaratans as $index => $nama) {
-            $layanan->persyaratans()->create([
-                'nama_syarat' => $nama,
-                'urutan' => $index,
-            ]);
+        foreach ($namaPersyaratans as $index => $nama) {
+            $persyaratan = Persyaratan::firstOrCreate(
+                ['nama_syarat' => $nama],
+                ['tipe' => 'file', 'wajib' => true]
+            );
+
+            $syncData[$persyaratan->id] = ['urutan' => $index];
         }
+
+        $layanan->persyaratans()->sync($syncData);
     }
 }

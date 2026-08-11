@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,7 +17,7 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens, MustVerifyEmailTrait;
 
     /**
      * Get the attributes that should be cast.
@@ -34,5 +35,25 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    public function isHelpdesk(): bool
+    {
+        return $this->role === 'helpdesk';
+    }
+
+    public function isPegawai(): bool
+    {
+        return $this->role === 'pegawai';
+    }
+
+    public function isUser(): bool
+    {
+        return $this->role === 'user';
+    }
+
+    public function timKerjas()
+    {
+        return $this->belongsToMany(TimKerja::class, 'tim_kerja_user');
     }
 }

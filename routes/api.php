@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LayananController;
+use App\Http\Controllers\PengajuanController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\DashboardController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -17,6 +19,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/email/resend', [AuthController::class, 'resendVerification']);
+    Route::get('/dashboard', [DashboardController::class, 'index']);
 });
 
 // ================= LAYANAN (PUBLIK) =================
@@ -24,8 +27,12 @@ Route::get('/layanan', [LayananController::class, 'index']);
 Route::get('/layanan/{slug}', [LayananController::class, 'show']);
 
 // ================= LAYANAN (ADMIN) =================
-Route::middleware(['auth:sanctum', 'is.admin'])->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
     Route::post('/layanan', [LayananController::class, 'store']);
     Route::put('/layanan/{layanan}', [LayananController::class, 'update']);
     Route::delete('/layanan/{layanan}', [LayananController::class, 'destroy']);
 });
+
+// ================= PENGAJUAN =================
+Route::post('/pengajuan', [PengajuanController::class, 'store'])->middleware('auth:sanctum');
+Route::get('/pengajuan/lacak/{nomorTiket}', [PengajuanController::class, 'lacak']);

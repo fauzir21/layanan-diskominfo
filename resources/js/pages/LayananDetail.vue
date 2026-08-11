@@ -64,18 +64,29 @@
                             :key="syarat.id"
                             class="w-full sm:w-[260px] border border-gray-300 rounded-2xl p-4 flex gap-3"
                         >
-                            <i class="bi bi-file-earmark-arrow-up-fill text-[32px] text-[#0A66C2] shrink-0"></i>
+                            <i
+                                class="text-[32px] shrink-0"
+                                :class="syarat.tipe === 'file' ? 'bi bi-file-earmark-arrow-up-fill text-[#0A66C2]' : 'bi bi-pencil-square text-[#0A66C2]'"
+                            ></i>
 
                             <div>
                                 <h3 class="font-semibold text-gray-800">{{ syarat.nama_syarat }}</h3>
-                                <p class="text-red-500 text-sm font-medium">Wajib</p>
+                                <p
+                                    class="text-sm font-medium"
+                                    :class="syarat.wajib ? 'text-red-500' : 'text-gray-400'"
+                                >
+                                    {{ syarat.wajib ? 'Wajib' : 'Opsional' }}
+                                </p>
 
                                 <div class="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
-                                    <span class="inline-flex items-center gap-1">
+                                    <span v-if="syarat.tipe === 'file'" class="inline-flex items-center gap-1">
                                         <i class="bi bi-file-earmark"></i> Format: PDF/JPG
                                     </span>
-                                    <span class="inline-flex items-center gap-1">
+                                    <span v-if="syarat.tipe === 'file'" class="inline-flex items-center gap-1">
                                         <i class="bi bi-file-earmark"></i> Maks: 2MB
+                                    </span>
+                                    <span v-else class="inline-flex items-center gap-1">
+                                        <i class="bi bi-input-cursor-text"></i> Isian teks
                                     </span>
                                 </div>
                             </div>
@@ -84,8 +95,13 @@
 
                     <p v-else class="mt-3 text-gray-500">Belum ada persyaratan yang ditentukan.</p>
 
+                    <p v-if="!authStore.user" class="mt-4 text-sm text-amber-600">
+                        Anda harus <router-link to="/" class="font-semibold underline">login</router-link> terlebih dahulu untuk mengajukan permohonan.
+                    </p>
+
                     <div class="mt-8 flex justify-end">
                         <button
+                            @click="handleAjukan"
                             class="inline-flex items-center gap-2 bg-[#0A66C2] hover:bg-[#0959aa] transition text-white font-semibold px-6 py-3 rounded-xl"
                         >
                             Ajukan Permohonan
@@ -99,6 +115,12 @@
 
         </div>
 
+        <PengajuanModal
+            :show="showModal"
+            :layanan="layanan"
+            @close="showModal = false"
+        />
+
     </main>
 </template>
 
@@ -106,10 +128,22 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from '../lib/axios'
+import { useAuthStore } from '../stores/auth'
+import PengajuanModal from '../components/PengajuanModal.vue'
 
 const route = useRoute()
+const authStore = useAuthStore()
 const layanan = ref(null)
 const loading = ref(true)
+const showModal = ref(false)
+
+function handleAjukan() {
+    if (!authStore.user) {
+        return
+    }
+
+    showModal.value = true
+}
 
 onMounted(async () => {
     try {

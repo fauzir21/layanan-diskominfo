@@ -9,10 +9,18 @@ class Persyaratan extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['layanan_id', 'nama_syarat', 'urutan'];
+    protected $fillable = ['nama_syarat', 'tipe', 'wajib'];
 
-    public function layanan()
+    protected function casts(): array
     {
-        return $this->belongsTo(Layanan::class);
+        return [
+            'wajib' => 'boolean',
+        ];
+    }
+
+    public function layanans()
+    {
+        return $this->belongsToMany(Layanan::class, 'layanan_persyaratan')
+            ->withPivot('urutan');
     }
 }

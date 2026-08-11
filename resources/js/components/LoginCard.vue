@@ -169,7 +169,7 @@ async function handleLogin() {
     try {
         const response = await axios.post('/api/login', form)
         authStore.setUser(response.data.user)
-        router.push('/')
+        router.push('/dashboard')
     } catch (error) {
         errorMessage.value = error.response?.data?.message || 'Terjadi kesalahan, silakan coba lagi.'
     } finally {

@@ -9,10 +9,12 @@ class Layanan extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nama', 'slug', 'deskripsi', 'kategori'];
+    protected $fillable = ['nama', 'slug', 'deskripsi', 'kategori', 'status'];
 
     public function persyaratans()
     {
-        return $this->hasMany(Persyaratan::class);
+        return $this->belongsToMany(Persyaratan::class, 'layanan_persyaratan')
+            ->withPivot('urutan')
+            ->orderBy('layanan_persyaratan.urutan');
     }
 }
