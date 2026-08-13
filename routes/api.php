@@ -34,5 +34,19 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
 });
 
 // ================= PENGAJUAN =================
+Route::get('/pengajuan', [PengajuanController::class, 'index'])->middleware('auth:sanctum');
 Route::post('/pengajuan', [PengajuanController::class, 'store'])->middleware('auth:sanctum');
 Route::get('/pengajuan/lacak/{nomorTiket}', [PengajuanController::class, 'lacak']);
+Route::get('/pengajuan/{id}', [PengajuanController::class, 'show'])->middleware('auth:sanctum')->where('id', '[0-9]+');
+
+// ================= HELPDESK =================
+Route::middleware(['auth:sanctum', 'role:helpdesk'])->prefix('helpdesk')->group(function () {
+    Route::get('/pengajuan', [PengajuanController::class, 'helpdeskIndex']);
+    Route::post('/pengajuan/{id}/proses', [PengajuanController::class, 'helpdeskUpdateStatus']);
+});
+
+// ================= PEGAWAI =================
+Route::middleware(['auth:sanctum', 'role:pegawai'])->prefix('pegawai')->group(function () {
+    Route::get('/pengajuan', [PengajuanController::class, 'pegawaiIndex']);
+    Route::post('/pengajuan/{id}/proses', [PengajuanController::class, 'pegawaiUpdateStatus']);
+});

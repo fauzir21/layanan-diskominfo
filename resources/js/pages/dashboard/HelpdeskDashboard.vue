@@ -82,6 +82,8 @@
 <script setup>
 import { useAuthStore } from '../../stores/auth'
 import StatCard from '../../components/dashboard/StatCard.vue'
+import { onMounted } from 'vue'
+import { useDashboard } from '../../composables/useDashboard'
 
 const authStore = useAuthStore()
 const {
@@ -89,9 +91,9 @@ const {
     loading,
     error,
     fetchDashboard,
-} = useDashboard()
+} = useDashboard()   // ← useDashboard dipakai tapi TIDAK di-import
 
-onMounted(() => {
+onMounted(() => {     // ← onMounted dipakai tapi TIDAK di-import
     fetchDashboard()
 })
 </script>

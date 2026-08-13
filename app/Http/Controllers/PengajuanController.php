@@ -13,6 +13,191 @@ use Illuminate\Validation\ValidationException;
 class PengajuanController extends Controller
 {
     /**
+     * List pengajuan milik user yang lagi login (buat halaman "Permohonan Saya").
+     */
+    public function index(Request $request)
+    {
+        $pengajuans = Pengajuan::where('user_id', $request->user()->id)
+            ->with('layanan:id,nama')
+            ->latest('tanggal_pengajuan')
+            ->get()
+            ->map(fn ($p) => [
+                'id' => $p->id,
+                'nomor_tiket' => $p->nomor_tiket,
+                'layanan' => $p->layanan?->nama,
+                'status' => $p->status,
+                'tanggal_pengajuan' => $p->tanggal_pengajuan,
+            ]);
+
+        return response()->json(['data' => $pengajuans]);
+    }
+
+    /**
+     * Detail 1 pengajuan + riwayat statusnya.
+     * Yang boleh liat: pemilik pengajuan, atau staff (admin/helpdesk/pegawai).
+     */
+    public function show(Request $request, $id)
+    {
+        $pengajuan = Pengajuan::with(['layanan:id,nama', 'riwayatDisposisis'])->findOrFail($id);
+
+        $user = $request->user();
+        $isOwner = $pengajuan->user_id === $user->id;
+        $isStaff = in_array($user->role, ['admin', 'helpdesk', 'pegawai']);
+
+        if (! $isOwner && ! $isStaff) {
+            return response()->json([
+                'message' => 'Anda tidak punya akses ke pengajuan ini.',
+            ], 403);
+        }
+
+        return response()->json([
+            'data' => [
+                'id' => $pengajuan->id,
+                'nomor_tiket' => $pengajuan->nomor_tiket,
+                'layanan' => $pengajuan->layanan?->nama,
+                'status' => $pengajuan->status,
+                'tanggal_pengajuan' => $pengajuan->tanggal_pengajuan,
+                'tanggal_selesai' => $pengajuan->tanggal_selesai,
+                'riwayat' => $pengajuan->riwayatDisposisis->map(fn ($r) => [
+                    'status' => $r->status,
+                    'keterangan' => $r->keterangan,
+                    'tanggal_disposisi' => $r->tanggal_disposisi,
+                ]),
+            ],
+        ]);
+    }
+
+    /**
+     * List pengajuan yang masih "menunggu_diproses" — buat helpdesk verifikasi/teruskan.
+     */
+    public function helpdeskIndex()
+    {
+        $pengajuans = Pengajuan::where('status', 'menunggu_diproses')
+            ->with(['layanan:id,nama,tim_kerja_id', 'user:id,name'])
+            ->latest('tanggal_pengajuan')
+            ->get()
+            ->map(fn ($p) => [
+                'id' => $p->id,
+                'nomor_tiket' => $p->nomor_tiket,
+                'layanan' => $p->layanan?->nama,
+                'nama_pemohon' => $p->user?->name,
+                'tanggal_pengajuan' => $p->tanggal_pengajuan,
+            ]);
+
+        return response()->json(['data' => $pengajuans]);
+    }
+
+    /**
+     * Helpdesk teruskan (→ diproses, otomatis "kekirim" ke tim kerja layanan-nya)
+     * atau tolak (→ ditolak) sebuah pengajuan.
+     */
+    public function helpdeskUpdateStatus(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'status' => ['required', 'in:diproses,ditolak'],
+            'keterangan' => ['nullable', 'string'],
+        ]);
+
+        $pengajuan = Pengajuan::with('layanan')->findOrFail($id);
+
+        if ($pengajuan->status !== 'menunggu_diproses') {
+            return response()->json([
+                'message' => 'Pengajuan ini sudah diproses sebelumnya.',
+            ], 422);
+        }
+
+        $pengajuan->update(['status' => $validated['status']]);
+
+        RiwayatDisposisi::create([
+            'pengajuan_id' => $pengajuan->id,
+            'tim_kerja_id' => $validated['status'] === 'diproses' ? $pengajuan->layanan->tim_kerja_id : null,
+            'handled_by' => $request->user()->id,
+            'status' => $validated['status'],
+            'keterangan' => $validated['keterangan']
+                ?? ($validated['status'] === 'diproses'
+                    ? 'Pengajuan diteruskan ke tim kerja terkait.'
+                    : 'Pengajuan ditolak oleh helpdesk.'),
+            'tanggal_disposisi' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Status pengajuan berhasil diperbarui.',
+        ]);
+    }
+
+    /**
+     * List pengajuan status "diproses" yang levansi ke tim kerja pegawai yang login.
+     */
+    public function pegawaiIndex(Request $request)
+    {
+        $timIds = $request->user()->timKerjas()->pluck('tim_kerjas.id');
+
+        $pengajuans = Pengajuan::where('status', 'diproses')
+            ->whereHas('layanan', fn ($q) => $q->whereIn('tim_kerja_id', $timIds))
+            ->with(['layanan:id,nama', 'user:id,name'])
+            ->latest('tanggal_pengajuan')
+            ->get()
+            ->map(fn ($p) => [
+                'id' => $p->id,
+                'nomor_tiket' => $p->nomor_tiket,
+                'layanan' => $p->layanan?->nama,
+                'nama_pemohon' => $p->user?->name,
+                'tanggal_pengajuan' => $p->tanggal_pengajuan,
+            ]);
+
+        return response()->json(['data' => $pengajuans]);
+    }
+
+    /**
+     * Pegawai selesaikan (→ selesai) atau minta perbaikan (→ perbaikan) sebuah pengajuan
+     * yang levansi ke tim kerja dia.
+     */
+    public function pegawaiUpdateStatus(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'status' => ['required', 'in:selesai,perbaikan'],
+            'keterangan' => ['nullable', 'string'],
+        ]);
+
+        $pengajuan = Pengajuan::with('layanan')->findOrFail($id);
+
+        $timIds = $request->user()->timKerjas()->pluck('tim_kerjas.id');
+
+        if (! $timIds->contains($pengajuan->layanan->tim_kerja_id)) {
+            return response()->json([
+                'message' => 'Anda tidak punya akses ke pengajuan ini.',
+            ], 403);
+        }
+
+        if ($pengajuan->status !== 'diproses') {
+            return response()->json([
+                'message' => 'Pengajuan ini bukan dalam status diproses.',
+            ], 422);
+        }
+
+        $pengajuan->update([
+            'status' => $validated['status'],
+            'tanggal_selesai' => $validated['status'] === 'selesai' ? now()->toDateString() : $pengajuan->tanggal_selesai,
+        ]);
+
+        RiwayatDisposisi::create([
+            'pengajuan_id' => $pengajuan->id,
+            'tim_kerja_id' => $pengajuan->layanan->tim_kerja_id,
+            'handled_by' => $request->user()->id,
+            'status' => $validated['status'],
+            'keterangan' => $validated['keterangan']
+                ?? ($validated['status'] === 'selesai'
+                    ? 'Permohonan telah selesai diproses.'
+                    : 'Permohonan memerlukan perbaikan/kelengkapan tambahan.'),
+            'tanggal_disposisi' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Status pengajuan berhasil diperbarui.',
+        ]);
+    }
+
+    /**
      * User ngajuin permohonan baru buat suatu layanan.
      * Wajib login (auth:sanctum), email juga harus udah verified.
      */

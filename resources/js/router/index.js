@@ -9,6 +9,8 @@ import AdminLayanan from '../pages/AdminLayanan.vue'
 import LacakPermohonan from '../pages/LacakPermohonan.vue'
 
 import Dashboard from '../pages/dashboard/Dashboard.vue'
+import DashboardPermohonan from '../pages/dashboard/DashboardPermohonan.vue'
+import PermohonanDetail from '../pages/dashboard/PermohonanDetail.vue'
 
 const routes = [
     {
@@ -48,6 +50,24 @@ const routes = [
     {
         path: '/dashboard',
         component: Dashboard,
+        meta: {
+            requiresAuth: true,
+            roles: ['admin', 'helpdesk', 'pegawai', 'user'],
+        },
+    },
+
+    {
+        path: '/dashboard/permohonan',
+        component: DashboardPermohonan,
+        meta: {
+            requiresAuth: true,
+            roles: ['admin', 'helpdesk', 'pegawai', 'user'],
+        },
+    },
+
+    {
+        path: '/dashboard/permohonan/:id',
+        component: PermohonanDetail,
         meta: {
             requiresAuth: true,
             roles: ['admin', 'helpdesk', 'pegawai', 'user'],

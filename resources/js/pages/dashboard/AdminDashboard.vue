@@ -83,6 +83,7 @@
 import { onMounted } from 'vue'
 import { useAuthStore } from '../../stores/auth'
 import { useDashboard } from '../../composables/useDashboard'
+import StatCard from '../../components/dashboard/StatCard.vue'
 
 const authStore = useAuthStore()
 
