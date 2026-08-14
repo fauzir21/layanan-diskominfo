@@ -70,11 +70,7 @@
                         </h1>
 
                         <p class="text-sm text-gray-500 mt-2">
-                            {{
-                                formatDate(
-                                    pengajuan.tanggal_pengajuan
-                                )
-                            }}
+                            {{ formatDate(pengajuan.tanggal_pengajuan) }}
                         </p>
 
                     </div>
@@ -162,11 +158,7 @@
                             </p>
 
                             <p class="font-medium text-gray-800 mt-1">
-                                {{
-                                    formatDate(
-                                        pengajuan.tanggal_pengajuan
-                                    )
-                                }}
+                                {{ formatDate(pengajuan.tanggal_pengajuan) }}
                             </p>
                         </div>
 
@@ -177,11 +169,7 @@
                             </p>
 
                             <p class="font-medium text-gray-800 mt-1">
-                                {{
-                                    formatDate(
-                                        pengajuan.tanggal_selesai
-                                    )
-                                }}
+                                {{ formatDate(pengajuan.tanggal_selesai) }}
                             </p>
                         </div>
 
@@ -341,18 +329,12 @@
                                 class="text-sm text-gray-500 mt-1"
                             >
                                 Ditangani oleh:
-                                {{
-                                    riwayat.handled_by.name
-                                }}
+                                {{ riwayat.handled_by.name }}
                             </p>
 
                             <p class="text-sm text-gray-500 mt-1">
                                 Status:
-                                {{
-                                    statusLabel(
-                                        riwayat.status
-                                    )
-                                }}
+                                {{ statusLabel(riwayat.status) }}
                             </p>
 
                             <p
@@ -366,11 +348,7 @@
                                 v-if="riwayat.tanggal_disposisi"
                                 class="text-xs text-gray-400 mt-2"
                             >
-                                {{
-                                    formatDateTime(
-                                        riwayat.tanggal_disposisi
-                                    )
-                                }}
+                                {{ formatDateTime(riwayat.tanggal_disposisi) }}
                             </p>
 
                         </div>
@@ -382,11 +360,134 @@
             </div>
 
 
-            <!-- ACTION PLACEHOLDER -->
+            <!-- FORM DISPOSISI -->
             <div
                 v-if="
-                    authStore.user?.role === 'helpdesk' ||
-                    authStore.user?.role === 'pegawai'
+                    authStore.user?.role === 'helpdesk' &&
+                    pengajuan.status === 'menunggu_diproses'
+                "
+                class="bg-white rounded-2xl border border-gray-100 p-6 mt-6"
+            >
+
+                <div>
+                    <h2 class="font-bold text-gray-800">
+                        Disposisi Permohonan
+                    </h2>
+
+                    <p class="text-sm text-gray-500 mt-1">
+                        Teruskan permohonan kepada Tim Kerja yang sesuai.
+                    </p>
+                </div>
+
+
+                <!-- ERROR DISPOSISI -->
+                <div
+                    v-if="disposisiError"
+                    class="mt-5 bg-red-50 border border-red-100 text-red-600 rounded-xl p-4 text-sm"
+                >
+                    {{ disposisiError }}
+                </div>
+
+
+                <!-- SUCCESS -->
+                <div
+                    v-if="disposisiSuccess"
+                    class="mt-5 bg-green-50 border border-green-100 text-green-700 rounded-xl p-4 text-sm"
+                >
+                    {{ disposisiSuccess }}
+                </div>
+
+
+                <form
+                    class="mt-6 space-y-5"
+                    @submit.prevent="submitDisposisi"
+                >
+
+                    <!-- TIM KERJA -->
+                    <div>
+
+                        <label
+                            for="timKerja"
+                            class="block text-sm font-medium text-gray-700 mb-2"
+                        >
+                            Tim Kerja
+                        </label>
+
+                        <select
+                            id="timKerja"
+                            v-model="disposisi.tim_kerja_id"
+                            required
+                            class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
+                        >
+
+                            <option value="" disabled>
+                                Pilih Tim Kerja
+                            </option>
+
+                            <option
+                                v-for="tim in timKerjas"
+                                :key="tim.id"
+                                :value="tim.id"
+                            >
+                                {{ tim.nama_tim }}
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- KETERANGAN -->
+                    <div>
+
+                        <label
+                            for="keterangan"
+                            class="block text-sm font-medium text-gray-700 mb-2"
+                        >
+                            Keterangan
+                        </label>
+
+                        <textarea
+                            id="keterangan"
+                            v-model="disposisi.keterangan"
+                            rows="4"
+                            placeholder="Tuliskan instruksi atau keterangan disposisi..."
+                            class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none resize-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
+                        ></textarea>
+
+                    </div>
+
+
+                    <!-- SUBMIT -->
+                    <div class="flex justify-end">
+
+                        <button
+                            type="submit"
+                            :disabled="
+                                submitting ||
+                                !disposisi.tim_kerja_id
+                            "
+                            class="px-6 py-3 rounded-lg bg-[#005AA7] text-white text-sm font-medium hover:bg-[#004b8d] disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {{
+                                submitting
+                                    ? 'Mengirim...'
+                                    : 'Kirim Disposisi'
+                            }}
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+
+            <!-- STATUS SUDAH DIPROSES -->
+            <div
+                v-else-if="
+                    authStore.user?.role === 'helpdesk' &&
+                    pengajuan.status !== 'menunggu_diproses'
                 "
                 class="bg-blue-50 border border-blue-100 rounded-2xl p-6 mt-6"
             >
@@ -396,7 +497,7 @@
                 </h3>
 
                 <p class="text-sm text-gray-600 mt-1">
-                    Fitur proses dan disposisi akan tersedia pada tahap berikutnya.
+                    Permohonan ini sudah memiliki proses disposisi.
                 </p>
 
             </div>
@@ -413,7 +514,10 @@ import {
     ref,
 } from 'vue'
 
-import { useRoute, useRouter } from 'vue-router'
+import {
+    useRoute,
+    useRouter,
+} from 'vue-router'
 
 import axios from '../../lib/axios'
 
@@ -430,6 +534,32 @@ const pengajuan = ref(null)
 const loading = ref(true)
 const error = ref('')
 
+
+/*
+|--------------------------------------------------------------------------
+| DISPOSISI
+|--------------------------------------------------------------------------
+*/
+
+const timKerjas = ref([])
+
+const disposisi = ref({
+    tim_kerja_id: '',
+    keterangan: '',
+})
+
+const submitting = ref(false)
+
+const disposisiError = ref('')
+
+const disposisiSuccess = ref('')
+
+
+/*
+|--------------------------------------------------------------------------
+| LOAD DETAIL
+|--------------------------------------------------------------------------
+*/
 
 async function loadDetail() {
     loading.value = true
@@ -457,12 +587,113 @@ async function loadDetail() {
 }
 
 
+/*
+|--------------------------------------------------------------------------
+| LOAD TIM KERJA
+|--------------------------------------------------------------------------
+*/
+
+async function loadTimKerja() {
+    try {
+
+        const response = await axios.get(
+            '/api/tim-kerja'
+        )
+
+        timKerjas.value =
+            response.data.data ||
+            response.data ||
+            []
+
+    } catch (err) {
+
+        console.error(err)
+
+        disposisiError.value =
+            err.response?.data?.message ||
+            'Gagal mengambil data Tim Kerja.'
+
+    }
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| SUBMIT DISPOSISI
+|--------------------------------------------------------------------------
+*/
+
+async function submitDisposisi() {
+
+    if (!disposisi.value.tim_kerja_id) {
+        disposisiError.value =
+            'Silakan pilih Tim Kerja terlebih dahulu.'
+
+        return
+    }
+
+    submitting.value = true
+    disposisiError.value = ''
+    disposisiSuccess.value = ''
+
+    try {
+
+        await axios.post(
+            `/api/permohonan/${route.params.id}/disposisi`,
+            {
+                tim_kerja_id:
+                    disposisi.value.tim_kerja_id,
+
+                keterangan:
+                    disposisi.value.keterangan,
+            }
+        )
+
+        disposisiSuccess.value =
+            'Disposisi berhasil dikirim.'
+
+        disposisi.value = {
+            tim_kerja_id: '',
+            keterangan: '',
+        }
+
+        await loadDetail()
+
+    } catch (err) {
+
+        console.error(err)
+
+        disposisiError.value =
+            err.response?.data?.message ||
+            'Gagal mengirim disposisi.'
+
+    } finally {
+
+        submitting.value = false
+
+    }
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| NAVIGATION
+|--------------------------------------------------------------------------
+*/
+
 function goBack() {
     router.push('/dashboard/permohonan')
 }
 
 
+/*
+|--------------------------------------------------------------------------
+| STATUS
+|--------------------------------------------------------------------------
+*/
+
 function statusLabel(status) {
+
     const labels = {
         menunggu_diproses: 'Menunggu',
         diproses: 'Diproses',
@@ -476,6 +707,7 @@ function statusLabel(status) {
 
 
 function statusClass(status) {
+
     const classes = {
         menunggu_diproses:
             'bg-yellow-100 text-yellow-700',
@@ -498,7 +730,14 @@ function statusClass(status) {
 }
 
 
+/*
+|--------------------------------------------------------------------------
+| DATE
+|--------------------------------------------------------------------------
+*/
+
 function formatDate(date) {
+
     if (!date) {
         return '-'
     }
@@ -515,6 +754,7 @@ function formatDate(date) {
 
 
 function formatDateTime(date) {
+
     if (!date) {
         return '-'
     }
@@ -532,7 +772,19 @@ function formatDateTime(date) {
 }
 
 
-onMounted(() => {
-    loadDetail()
+/*
+|--------------------------------------------------------------------------
+| INITIAL LOAD
+|--------------------------------------------------------------------------
+*/
+
+onMounted(async () => {
+
+    await loadDetail()
+
+    if (authStore.user?.role === 'helpdesk') {
+        await loadTimKerja()
+    }
+
 })
 </script>

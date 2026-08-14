@@ -2,74 +2,94 @@
     <div>
 
         <!-- HEADER -->
-        <div
-            class="bg-white rounded-2xl border border-gray-100 p-6"
-        >
+        <div class="mb-6">
             <h1 class="text-2xl font-bold text-gray-800">
                 Permohonan
             </h1>
 
-            <p class="text-gray-500 mt-1">
+            <p class="text-sm text-gray-500 mt-1">
                 Kelola dan pantau permohonan layanan.
             </p>
         </div>
 
 
-        <!-- FILTER -->
-        <div
-            class="bg-white rounded-2xl border border-gray-100 p-5 mt-6"
-        >
+        <!-- FILTER & SEARCH -->
+        <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
 
             <div
-                class="flex flex-col md:flex-row gap-4"
+                class="flex flex-col lg:flex-row lg:items-center gap-4"
             >
 
-                <input
-                    v-model="search"
-                    type="text"
-                    placeholder="Cari nomor tiket, nama, atau layanan..."
-                    class="flex-1 border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-100"
-                    @keyup.enter="loadData"
-                />
+                <!-- SEARCH -->
+                <div class="flex-1">
+
+                    <label
+                        for="search"
+                        class="sr-only"
+                    >
+                        Cari permohonan
+                    </label>
+
+                    <div class="relative">
+
+                        <input
+                            id="search"
+                            v-model="search"
+                            type="text"
+                            placeholder="Cari nomor tiket atau nama pemohon..."
+                            class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
+                        />
+
+                    </div>
+
+                </div>
 
 
-                <select
-                    v-model="status"
-                    class="border border-gray-200 rounded-lg px-4 py-2.5 text-sm bg-white"
-                    @change="loadData"
-                >
-                    <option value="">
-                        Semua Status
-                    </option>
+                <!-- STATUS -->
+                <div class="w-full lg:w-56">
 
-                    <option value="menunggu_diproses">
-                        Menunggu
-                    </option>
+                    <select
+                        v-model="statusFilter"
+                        class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
+                    >
 
-                    <option value="diproses">
-                        Diproses
-                    </option>
+                        <option value="">
+                            Semua Status
+                        </option>
 
-                    <option value="perbaikan">
-                        Perbaikan
-                    </option>
+                        <option value="menunggu_diproses">
+                            Menunggu Diproses
+                        </option>
 
-                    <option value="selesai">
-                        Selesai
-                    </option>
+                        <option value="diproses">
+                            Diproses
+                        </option>
 
-                    <option value="ditolak">
-                        Ditolak
-                    </option>
-                </select>
+                        <option value="perbaikan">
+                            Perbaikan
+                        </option>
+
+                        <option value="selesai">
+                            Selesai
+                        </option>
+
+                        <option value="ditolak">
+                            Ditolak
+                        </option>
+
+                    </select>
+
+                </div>
 
 
+                <!-- REFRESH -->
                 <button
                     type="button"
-                    @click="loadData"
-                    class="px-5 py-2.5 rounded-lg bg-[#005AA7] text-white text-sm font-medium hover:bg-[#004b8d]"
+                    @click="loadPermohonan"
+                    :disabled="loading"
+                    class="px-5 py-3 rounded-lg bg-[#005AA7] text-white text-sm font-medium hover:bg-[#004b8d] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    Cari
+                    {{ loading ? 'Memuat...' : 'Refresh' }}
                 </button>
 
             </div>
@@ -80,152 +100,215 @@
         <!-- ERROR -->
         <div
             v-if="error"
-            class="bg-red-50 border border-red-100 text-red-600 rounded-xl p-4 mt-6"
+            class="bg-red-50 border border-red-100 text-red-600 rounded-xl p-4 mb-6 text-sm"
         >
             {{ error }}
+
+            <button
+                type="button"
+                @click="loadPermohonan"
+                class="ml-2 underline font-medium"
+            >
+                Coba lagi
+            </button>
+        </div>
+
+
+        <!-- LOADING -->
+        <div
+            v-if="loading"
+            class="bg-white rounded-2xl border border-gray-100 p-10 text-center"
+        >
+
+            <p class="text-gray-500">
+                Memuat data permohonan...
+            </p>
+
         </div>
 
 
         <!-- TABLE -->
         <div
-            class="bg-white rounded-2xl border border-gray-100 mt-6 overflow-hidden"
+            v-else
+            class="bg-white rounded-2xl border border-gray-100 overflow-hidden"
         >
 
-            <div
-                v-if="loading"
-                class="p-10 text-center text-gray-500"
-            >
-                Memuat permohonan...
-            </div>
+            <!-- DESKTOP TABLE -->
+            <div class="overflow-x-auto">
 
+                <table class="w-full min-w-[850px]">
 
-            <div
-                v-else-if="!items.length"
-                class="p-12 text-center"
-            >
+                    <thead class="bg-gray-50 border-b border-gray-100">
 
-                <div class="text-4xl mb-3">
-                    📭
-                </div>
-
-                <p class="text-gray-500">
-                    Tidak ada permohonan ditemukan.
-                </p>
-
-            </div>
-
-
-            <div
-                v-else
-                class="overflow-x-auto"
-            >
-
-                <table class="w-full text-sm">
-
-                    <thead>
-                        <tr class="bg-gray-50 border-b border-gray-100">
+                        <tr>
 
                             <th
-                                class="text-left px-6 py-4 font-semibold text-gray-600"
+                                class="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase"
                             >
                                 No. Tiket
                             </th>
 
                             <th
-                                class="text-left px-6 py-4 font-semibold text-gray-600"
+                                class="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase"
                             >
                                 Pemohon
                             </th>
 
                             <th
-                                class="text-left px-6 py-4 font-semibold text-gray-600"
+                                class="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase"
                             >
                                 Layanan
                             </th>
 
                             <th
-                                class="text-left px-6 py-4 font-semibold text-gray-600"
+                                class="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase"
                             >
                                 Tanggal
                             </th>
 
                             <th
-                                class="text-left px-6 py-4 font-semibold text-gray-600"
+                                class="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase"
                             >
                                 Status
                             </th>
 
                             <th
-                                class="text-right px-6 py-4 font-semibold text-gray-600"
+                                class="text-right px-6 py-4 text-xs font-semibold text-gray-500 uppercase"
                             >
                                 Aksi
                             </th>
 
                         </tr>
+
                     </thead>
 
 
-                    <tbody>
+                    <tbody class="divide-y divide-gray-100">
 
                         <tr
-                            v-for="item in items"
-                            :key="item.id"
-                            class="border-b border-gray-100 last:border-0 hover:bg-gray-50"
+                            v-for="pengajuan in filteredPermohonans"
+                            :key="pengajuan.id"
+                            class="hover:bg-gray-50 transition"
                         >
 
-                            <td class="px-6 py-4">
-                                <span class="font-medium text-gray-800">
-                                    {{ item.nomor_tiket }}
-                                </span>
+                            <!-- TIKET -->
+                            <td class="px-6 py-5">
+
+                                <p class="font-semibold text-gray-800">
+                                    {{ pengajuan.nomor_tiket || '-' }}
+                                </p>
+
                             </td>
 
 
-                            <td class="px-6 py-4">
+                            <!-- PEMOHON -->
+                            <td class="px-6 py-5">
 
                                 <p class="font-medium text-gray-800">
-                                    {{ item.user?.name || '-' }}
+                                    {{ pengajuan.user?.name || '-' }}
                                 </p>
 
-                                <p class="text-xs text-gray-400">
-                                    {{ item.user?.email || '' }}
+                                <p
+                                    v-if="pengajuan.user?.email"
+                                    class="text-xs text-gray-400 mt-1"
+                                >
+                                    {{ pengajuan.user.email }}
                                 </p>
 
                             </td>
 
 
-                            <td class="px-6 py-4 text-gray-700">
-                                {{ item.layanan?.nama || '-' }}
+                            <!-- LAYANAN -->
+                            <td class="px-6 py-5">
+
+                                <p class="text-gray-700">
+                                    {{ pengajuan.layanan?.nama || '-' }}
+                                </p>
+
                             </td>
 
 
-                            <td class="px-6 py-4 text-gray-500">
-                                {{ formatDate(
-                                    item.tanggal_pengajuan
-                                ) }}
+                            <!-- TANGGAL -->
+                            <td class="px-6 py-5">
+
+                                <p class="text-sm text-gray-600">
+                                    {{
+                                        formatDate(
+                                            pengajuan.tanggal_pengajuan
+                                        )
+                                    }}
+                                </p>
+
                             </td>
 
 
-                            <td class="px-6 py-4">
+                            <!-- STATUS -->
+                            <td class="px-6 py-5">
 
                                 <span
-                                    class="inline-block px-3 py-1.5 rounded-full text-xs font-medium"
-                                    :class="statusClass(item.status)"
+                                    class="inline-flex px-3 py-1.5 rounded-full text-xs font-medium"
+                                    :class="
+                                        statusClass(
+                                            pengajuan.status
+                                        )
+                                    "
                                 >
-                                    {{ statusLabel(item.status) }}
+                                    {{
+                                        statusLabel(
+                                            pengajuan.status
+                                        )
+                                    }}
                                 </span>
 
                             </td>
 
 
-                            <td class="px-6 py-4 text-right">
+                            <!-- AKSI -->
+                            <td class="px-6 py-5 text-right">
 
                                 <button
                                     type="button"
-                                    @click="openDetail(item.id)"
-                                    class="text-[#005AA7] hover:underline font-medium"
+                                    @click="openDetail(pengajuan.id)"
+                                    class="text-sm font-medium text-[#005AA7] hover:underline"
                                 >
                                     Detail
                                 </button>
+
+                            </td>
+
+                        </tr>
+
+
+                        <!-- EMPTY -->
+                        <tr
+                            v-if="filteredPermohonans.length === 0"
+                        >
+
+                            <td
+                                colspan="6"
+                                class="px-6 py-14 text-center"
+                            >
+
+                                <div class="text-4xl mb-3">
+                                    📋
+                                </div>
+
+                                <h3
+                                    class="font-semibold text-gray-800"
+                                >
+                                    Tidak ada permohonan
+                                </h3>
+
+                                <p
+                                    class="text-sm text-gray-500 mt-1"
+                                >
+                                    {{
+                                        search ||
+                                        statusFilter
+                                            ? 'Tidak ada data yang sesuai dengan filter.'
+                                            : 'Belum ada permohonan yang tersedia.'
+                                    }}
+                                </p>
 
                             </td>
 
@@ -238,45 +321,31 @@
             </div>
 
 
-            <!-- PAGINATION -->
+            <!-- FOOTER -->
             <div
-                v-if="pagination.last_page > 1"
-                class="flex items-center justify-between p-5 border-t border-gray-100"
+                v-if="filteredPermohonans.length > 0"
+                class="border-t border-gray-100 px-6 py-4"
             >
 
-                <p class="text-xs text-gray-500">
-                    Halaman {{ pagination.current_page }}
-                    dari {{ pagination.last_page }}
-                </p>
+                <div
+                    class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+                >
 
+                    <p class="text-sm text-gray-500">
+                        Menampilkan
+                        <span class="font-medium text-gray-700">
+                            {{ filteredPermohonans.length }}
+                        </span>
+                        permohonan
+                    </p>
 
-                <div class="flex gap-2">
-
-                    <button
-                        type="button"
-                        :disabled="pagination.current_page <= 1"
-                        @click="changePage(
-                            pagination.current_page - 1
-                        )"
-                        class="px-3 py-2 rounded-lg border text-sm disabled:opacity-40"
+                    <p
+                        v-if="pagination.last_page"
+                        class="text-xs text-gray-400"
                     >
-                        Sebelumnya
-                    </button>
-
-
-                    <button
-                        type="button"
-                        :disabled="
-                            pagination.current_page >=
-                            pagination.last_page
-                        "
-                        @click="changePage(
-                            pagination.current_page + 1
-                        )"
-                        class="px-3 py-2 rounded-lg border text-sm disabled:opacity-40"
-                    >
-                        Berikutnya
-                    </button>
+                        Halaman {{ pagination.current_page }}
+                        dari {{ pagination.last_page }}
+                    </p>
 
                 </div>
 
@@ -289,51 +358,92 @@
 
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import {
+    computed,
+    onMounted,
+    ref,
+} from 'vue'
+
+import {
+    useRouter,
+} from 'vue-router'
+
 import axios from '../../lib/axios'
 
+
 const router = useRouter()
-const items = ref([])
-const loading = ref(false)
+
+
+/*
+|--------------------------------------------------------------------------
+| STATE
+|--------------------------------------------------------------------------
+*/
+
+const permohonans = ref([])
+
+const loading = ref(true)
+
 const error = ref('')
 
 const search = ref('')
-const status = ref('')
+
+const statusFilter = ref('')
+
 
 const pagination = ref({
     current_page: 1,
     last_page: 1,
+    total: 0,
 })
 
 
-async function loadData(page = 1) {
+/*
+|--------------------------------------------------------------------------
+| LOAD DATA
+|--------------------------------------------------------------------------
+*/
+
+async function loadPermohonan() {
+
     loading.value = true
     error.value = ''
 
-
     try {
+
         const response = await axios.get(
-            '/api/permohonan',
-            {
-                params: {
-                    page,
-                    search: search.value || undefined,
-                    status: status.value || undefined,
-                },
-            }
+            '/api/permohonan'
         )
 
+        /*
+         * Endpoint Laravel menggunakan pagination.
+         *
+         * Struktur normal:
+         *
+         * {
+         *     current_page,
+         *     data: [],
+         *     last_page,
+         *     total
+         * }
+         */
 
-        items.value = response.data.data || []
+        const data = response.data
 
+        permohonans.value =
+            data.data ||
+            []
 
         pagination.value = {
             current_page:
-                response.data.current_page || 1,
+                data.current_page || 1,
 
             last_page:
-                response.data.last_page || 1,
+                data.last_page || 1,
+
+            total:
+                data.total ||
+                permohonans.value.length,
         }
 
     } catch (err) {
@@ -344,39 +454,146 @@ async function loadData(page = 1) {
             err.response?.data?.message ||
             'Gagal mengambil data permohonan.'
 
+        permohonans.value = []
+
     } finally {
+
         loading.value = false
+
     }
 }
 
 
-function changePage(page) {
-    if (
-        page < 1 ||
-        page > pagination.value.last_page
-    ) {
-        return
+/*
+|--------------------------------------------------------------------------
+| FILTER
+|--------------------------------------------------------------------------
+*/
+
+const filteredPermohonans = computed(() => {
+
+    let data = [...permohonans.value]
+
+
+    /*
+     * STATUS
+     */
+
+    if (statusFilter.value) {
+
+        data = data.filter(
+            item =>
+                item.status ===
+                statusFilter.value
+        )
+
     }
 
-    loadData(page)
+
+    /*
+     * SEARCH
+     */
+
+    const keyword =
+        search.value
+            .trim()
+            .toLowerCase()
+
+
+    if (keyword) {
+
+        data = data.filter(item => {
+
+            const nomorTiket =
+                item.nomor_tiket
+                    ?.toLowerCase() || ''
+
+            const namaPemohon =
+                item.user?.name
+                    ?.toLowerCase() || ''
+
+            const emailPemohon =
+                item.user?.email
+                    ?.toLowerCase() || ''
+
+            const namaLayanan =
+                item.layanan?.nama
+                    ?.toLowerCase() || ''
+
+            return (
+                nomorTiket.includes(keyword) ||
+                namaPemohon.includes(keyword) ||
+                emailPemohon.includes(keyword) ||
+                namaLayanan.includes(keyword)
+            )
+
+        })
+
+    }
+
+
+    return data
+
+})
+
+
+/*
+|--------------------------------------------------------------------------
+| DETAIL
+|--------------------------------------------------------------------------
+*/
+
+function openDetail(id) {
+
+    router.push(
+        `/dashboard/permohonan/${id}`
+    )
+
 }
 
+
+/*
+|--------------------------------------------------------------------------
+| STATUS LABEL
+|--------------------------------------------------------------------------
+*/
 
 function statusLabel(status) {
+
     const labels = {
-        menunggu_diproses: 'Menunggu',
-        diproses: 'Diproses',
-        perbaikan: 'Perbaikan',
-        selesai: 'Selesai',
-        ditolak: 'Ditolak',
+
+        menunggu_diproses:
+            'Menunggu Diproses',
+
+        diproses:
+            'Diproses',
+
+        perbaikan:
+            'Perbaikan',
+
+        selesai:
+            'Selesai',
+
+        ditolak:
+            'Ditolak',
+
     }
 
-    return labels[status] || status
+    return labels[status] || status || '-'
+
 }
 
 
+/*
+|--------------------------------------------------------------------------
+| STATUS CLASS
+|--------------------------------------------------------------------------
+*/
+
 function statusClass(status) {
+
     const classes = {
+
         menunggu_diproses:
             'bg-yellow-100 text-yellow-700',
 
@@ -391,14 +608,23 @@ function statusClass(status) {
 
         ditolak:
             'bg-red-100 text-red-700',
+
     }
 
     return classes[status] ||
         'bg-gray-100 text-gray-600'
+
 }
 
 
+/*
+|--------------------------------------------------------------------------
+| DATE
+|--------------------------------------------------------------------------
+*/
+
 function formatDate(date) {
+
     if (!date) {
         return '-'
     }
@@ -411,15 +637,19 @@ function formatDate(date) {
             year: 'numeric',
         }
     )
+
 }
 
 
-function openDetail(id) {
-    router.push(`/dashboard/permohonan/${id}`)
-}
-
+/*
+|--------------------------------------------------------------------------
+| INITIAL LOAD
+|--------------------------------------------------------------------------
+*/
 
 onMounted(() => {
-    loadData()
+
+    loadPermohonan()
+
 })
 </script>
