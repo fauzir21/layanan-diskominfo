@@ -4,38 +4,64 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pengajuan;
-use App\Models\Layanan;
-use App\Models\User;
 use App\Models\TimKerja;
+use App\Models\User;
+use App\Models\Layanan;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $user = $request->user();
 
-        return match ($user->role) {
-            'admin' => $this->adminDashboard($user),
-            'helpdesk' => $this->helpdeskDashboard($user),
-            'pegawai' => $this->pegawaiDashboard($user),
-            'user' => $this->userDashboard($user),
+        switch ($user->role) {
+            case 'admin':
+                return response()->json(
+                    $this->adminDashboard($user)
+                );
 
-            default => response()->json([
-                'message' => 'Role tidak dikenali.'
-            ], 403),
-        };
+            case 'helpdesk':
+                return response()->json(
+                    $this->helpdeskDashboard($user)
+                );
+
+            case 'pegawai':
+                return response()->json(
+                    $this->pegawaiDashboard($user)
+                );
+
+            case 'user':
+                return response()->json(
+                    $this->pemohonDashboard($user)
+                );
+
+            default:
+                return response()->json([
+                    'message' => 'Role tidak dikenali.',
+                ], 403);
+        }
     }
 
-    /**
-     * Dashboard Admin
-     */
-    private function adminDashboard($user)
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN
+    |--------------------------------------------------------------------------
+    */
+
+    private function adminDashboard(User $user): array
     {
         $pengajuan = Pengajuan::query();
 
-        return response()->json([
-            'user' => $this->userData($user),
+        return [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ],
 
             'statistics' => [
                 'total_pengajuan' => (clone $pengajuan)->count(),
@@ -67,19 +93,30 @@ class DashboardController extends Controller
                 'total_tim_kerja' => TimKerja::count(),
             ],
 
-            'pengajuan_terbaru' => $this->latestPengajuan($pengajuan),
-        ]);
+            'pengajuan_terbaru' => $this->latestPengajuan(
+                $pengajuan
+            ),
+        ];
     }
 
-    /**
-     * Dashboard Helpdesk
-     */
-    private function helpdeskDashboard($user)
+
+    /*
+    |--------------------------------------------------------------------------
+    | HELPDESK
+    |--------------------------------------------------------------------------
+    */
+
+    private function helpdeskDashboard(User $user): array
     {
         $pengajuan = Pengajuan::query();
 
-        return response()->json([
-            'user' => $this->userData($user),
+        return [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ],
 
             'statistics' => [
                 'total_pengajuan' => (clone $pengajuan)->count(),
@@ -105,23 +142,87 @@ class DashboardController extends Controller
                     ->count(),
             ],
 
-            'pengajuan_terbaru' => $this->latestPengajuan($pengajuan),
-        ]);
+            'pengajuan_terbaru' => $this->latestPengajuan(
+                $pengajuan
+            ),
+        ];
     }
 
-    /**
-     * Dashboard Pegawai
-     */
-    private function pegawaiDashboard($user)
+
+    /*
+    |--------------------------------------------------------------------------
+    | PEGAWAI
+    |--------------------------------------------------------------------------
+    */
+
+    private function pegawaiDashboard(User $user): array
     {
-        $timIds = $user->timKerjas()->pluck('tim_kerja.id');
+        /*
+         * Ambil ID Tim Kerja milik pegawai.
+         *
+         * Relasi User -> TimKerja menggunakan tabel:
+         * tim_kerja_user
+         *
+         * Tabel model TimKerja adalah:
+         * tim_kerjas
+         */
 
-        $pengajuan = Pengajuan::whereHas('riwayatDisposisis', function ($query) use ($timIds) {
-            $query->whereIn('tim_kerja_id', $timIds);
-        });
+        $timKerjaIds = $user
+            ->timKerjas()
+            ->pluck('tim_kerjas.id');
 
-        return response()->json([
-            'user' => $this->userData($user),
+
+        /*
+         * Jika pegawai belum memiliki Tim Kerja,
+         * kembalikan dashboard kosong.
+         */
+
+        if ($timKerjaIds->isEmpty()) {
+            return [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                ],
+
+                'statistics' => [
+                    'total_pengajuan' => 0,
+                    'menunggu_diproses' => 0,
+                    'diproses' => 0,
+                    'perbaikan' => 0,
+                    'selesai' => 0,
+                    'ditolak' => 0,
+                ],
+
+                'pengajuan_terbaru' => [],
+
+                'tim_kerja' => [],
+            ];
+        }
+
+
+        /*
+         * Ambil pengajuan yang memiliki riwayat disposisi
+         * ke Tim Kerja pegawai tersebut.
+         */
+
+        $pengajuan = Pengajuan::query()
+            ->whereHas('riwayatDisposisis', function ($query) use ($timKerjaIds) {
+                $query->whereIn(
+                    'tim_kerja_id',
+                    $timKerjaIds
+                );
+            });
+
+
+        return [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ],
 
             'statistics' => [
                 'total_pengajuan' => (clone $pengajuan)->count(),
@@ -147,19 +248,33 @@ class DashboardController extends Controller
                     ->count(),
             ],
 
-            'pengajuan_terbaru' => $this->latestPengajuan($pengajuan),
-        ]);
+            'pengajuan_terbaru' => $this->latestPengajuan(
+                $pengajuan
+            ),
+
+            'tim_kerja' => $timKerjaIds,
+        ];
     }
 
-    /**
-     * Dashboard User / Pemohon
-     */
-    private function userDashboard($user)
+
+    /*
+    |--------------------------------------------------------------------------
+    | PEMOHON / USER
+    |--------------------------------------------------------------------------
+    */
+
+    private function pemohonDashboard(User $user): array
     {
-        $pengajuan = Pengajuan::where('user_id', $user->id);
+        $pengajuan = Pengajuan::query()
+            ->where('user_id', $user->id);
 
-        return response()->json([
-            'user' => $this->userData($user),
+        return [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ],
 
             'statistics' => [
                 'total_pengajuan' => (clone $pengajuan)->count(),
@@ -185,43 +300,44 @@ class DashboardController extends Controller
                     ->count(),
             ],
 
-            'pengajuan_terbaru' => $this->latestPengajuan($pengajuan),
-        ]);
+            'pengajuan_terbaru' => $this->latestPengajuan(
+                $pengajuan
+            ),
+        ];
     }
 
-    /**
-     * Pengajuan terbaru
-     */
+
+    /*
+    |--------------------------------------------------------------------------
+    | PENGAJUAN TERBARU
+    |--------------------------------------------------------------------------
+    */
+
     private function latestPengajuan($query)
     {
         return $query
-            ->with(['layanan', 'user'])
+            ->with([
+                'layanan:id,nama',
+                'user:id,name',
+            ])
             ->latest('tanggal_pengajuan')
-            ->take(5)
+            ->latest('id')
+            ->limit(5)
             ->get()
             ->map(function ($pengajuan) {
                 return [
                     'id' => $pengajuan->id,
                     'nomor_tiket' => $pengajuan->nomor_tiket,
+
                     'layanan' => $pengajuan->layanan?->nama,
+
                     'nama_pemohon' => $pengajuan->user?->name,
+
                     'status' => $pengajuan->status,
+
                     'tanggal_pengajuan' => $pengajuan->tanggal_pengajuan,
                 ];
-            });
-    }
-
-    /**
-     * Data user
-     */
-    private function userData($user)
-    {
-        return [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'role' => $user->role,
-            'kategori_pengguna' => $user->kategori_pengguna,
-        ];
+            })
+            ->values();
     }
 }

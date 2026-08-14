@@ -20,6 +20,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/email/resend', [AuthController::class, 'resendVerification']);
     Route::get('/dashboard', [DashboardController::class, 'index']);
+
+    Route::get('/permohonan', [PengajuanController::class, 'index']);
+    Route::get('/permohonan/{pengajuan}', [PengajuanController::class, 'show']);
+    Route::post('/permohonan/{pengajuan}/disposisi',[PengajuanController::class, 'disposisi']);
+
+    Route::get('/tim-kerja', [PengajuanController::class, 'timKerja']);
 });
 
 // ================= LAYANAN (PUBLIK) =================

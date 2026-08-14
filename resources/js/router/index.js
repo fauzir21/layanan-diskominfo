@@ -11,6 +11,8 @@ import LacakPermohonan from '../pages/LacakPermohonan.vue'
 import Dashboard from '../pages/dashboard/Dashboard.vue'
 import DashboardPermohonan from '../pages/dashboard/DashboardPermohonan.vue'
 import PermohonanDetail from '../pages/dashboard/PermohonanDetail.vue'
+import RiwayatPengajuan from '../pages/dashboard/RiwayatPengajuan.vue'
+import Permohonan from '../pages/dashboard/Permohonan.vue'
 
 const routes = [
     {
@@ -57,6 +59,24 @@ const routes = [
     },
 
     {
+        path: '/dashboard/riwayat',
+        component: RiwayatPengajuan,
+        meta: {
+            requiresAuth: true,
+            roles: ['user'],
+        },
+    },
+
+    {
+        path: '/dashboard/permohonan',
+        component: Permohonan,
+        meta: {
+            requiresAuth: true,
+            roles: ['admin', 'helpdesk', 'pegawai'],
+        },
+    },
+
+    {
         path: '/dashboard/permohonan',
         component: DashboardPermohonan,
         meta: {
@@ -71,6 +91,15 @@ const routes = [
         meta: {
             requiresAuth: true,
             roles: ['admin', 'helpdesk', 'pegawai', 'user'],
+        },
+    },
+
+    {
+        path: '/dashboard/permohonan/:id',
+        component: PermohonanDetail,
+        meta: {
+            requiresAuth: true,
+            roles: ['admin', 'helpdesk', 'pegawai'],
         },
     },
 ]

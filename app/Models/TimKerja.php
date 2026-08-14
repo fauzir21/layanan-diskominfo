@@ -9,15 +9,32 @@ class TimKerja extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nama_tim'];
+    protected $table = 'tim_kerjas';
+
+    protected $fillable = [
+        'nama_tim',
+    ];
 
     public function users()
     {
-        return $this->belongsToMany(User::class, 'tim_kerja_user');
+        return $this->belongsToMany(
+            User::class,
+            'tim_kerja_user',
+            'tim_kerja_id',
+            'user_id'
+        );
     }
 
     public function layanans()
     {
         return $this->hasMany(Layanan::class);
+    }
+
+    public function riwayatDisposisis()
+    {
+        return $this->hasMany(
+            RiwayatDisposisi::class,
+            'tim_kerja_id'
+        );
     }
 }
