@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CaptchaController;
 use App\Http\Controllers\LayananController;
 use App\Http\Controllers\PengajuanController;
 use Illuminate\Http\Request;
@@ -27,6 +28,8 @@ Route::get('/user', function (Request $request) {
 Route::post('/register', [AuthController::class, 'register']);
 
 Route::post('/login', [AuthController::class, 'login']);
+
+Route::get('/captcha', [CaptchaController::class, 'generate']);
 
 
 // ================= AUTHENTICATED =================

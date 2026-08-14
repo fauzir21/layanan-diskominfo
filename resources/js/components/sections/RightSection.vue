@@ -1,6 +1,6 @@
 <template>
     <section
-        class="w-full h-full flex items-center justify-center lg:pl-20"
+        class="w-full h-full flex items-center lg:items-stretch justify-center"
     >
         <div v-if="authStore.isLoading"></div>
         <LoginCard v-else-if="!authStore.user" />

@@ -39,16 +39,30 @@ class AuthController extends Controller
     }
 
     /**
-     * Login. Ditolak kalau email belum diverifikasi.
+     * Login. Ditolak kalau captcha salah, email/password salah,
+     * atau email belum diverifikasi.
      */
     public function login(Request $request)
     {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
+            'captcha' => ['required', 'string'],
         ]);
 
-        if (! Auth::attempt($credentials)) {
+        // Captcha dicek & langsung "dipakai habis" di dalam verify(),
+        // jadi tiap percobaan login butuh captcha baru.
+        if (! CaptchaController::verify($request, $credentials['captcha'])) {
+            return response()->json([
+                'message' => 'Captcha tidak sesuai atau sudah kedaluwarsa.',
+                'errors' => ['captcha' => ['Captcha tidak sesuai atau sudah kedaluwarsa.']],
+            ], 422);
+        }
+
+        if (! Auth::attempt([
+            'email' => $credentials['email'],
+            'password' => $credentials['password'],
+        ])) {
             return response()->json([
                 'message' => 'Email atau password salah.',
             ], 422);
