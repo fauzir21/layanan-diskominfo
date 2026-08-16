@@ -1,24 +1,27 @@
 <template>
     <main
-        class="relative min-h-screen bg-cover bg-center flex items-center justify-center py-10"
-        style="background-image:url('/images/background-register.jpg')"
+        class="relative min-h-screen w-full overflow-x-hidden bg-cover bg-center bg-no-repeat"
+        style="background-image: url('/images/bg.png');"
     >
-        <!-- Overlay -->
-        <div class="absolute inset-0 bg-[#0058A8]/40"></div>
 
-        <!-- Logo pojok kiri atas -->
-        <img
-            src="/public/images/logo-kota-bogor.png"
-            alt="Logo Kota Bogor"
-            class="absolute top-8 left-8 w-24 z-10"
-        />
+        <!-- Background overlay -->
+        <div
+            class="absolute inset-0 bg-white/10"
+        ></div>
 
-        <!-- Form -->
-        <div class="relative z-10 px-4">
+
+        <!-- Content -->
+        <div
+            class="relative z-10 flex min-h-screen w-full items-center justify-center px-3 py-6 sm:px-5 sm:py-8 md:px-8 lg:py-10"
+        >
+
             <RegisterForm />
+
         </div>
+
     </main>
 </template>
+
 
 <script setup>
 import RegisterForm from '../components/RegisterForm.vue'

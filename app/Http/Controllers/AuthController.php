@@ -11,99 +11,288 @@ use Illuminate\Validation\Rules\Password;
 class AuthController extends Controller
 {
     /**
-     * Daftar akun baru. Belum bisa login sebelum verifikasi email.
+     * ============================================================
+     * REGISTER
+     * ============================================================
+     *
+     * Registrasi publik hanya boleh membuat akun dengan role "user".
+     *
+     * Role:
+     * - admin
+     * - helpdesk
+     * - pegawai
+     *
+     * tidak boleh dipilih dari halaman register publik.
      */
     public function register(Request $request)
     {
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI DATA
+        |--------------------------------------------------------------------------
+        */
+
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', Password::defaults()],
-            'kategori_pengguna' => ['required', 'string'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                'unique:users,email',
+            ],
+
+            'password' => [
+                'required',
+                'confirmed',
+                Password::defaults(),
+            ],
+
+            'kategori_pengguna' => [
+                'required',
+                'string',
+                'max:100',
+            ],
+
+            'captcha' => [
+                'required',
+                'string',
+                'max:20',
+            ],
         ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | VERIFIKASI CAPTCHA
+        |--------------------------------------------------------------------------
+        |
+        | CaptchaController::verify() akan:
+        |
+        | 1. mengambil captcha dari session
+        | 2. mengecek masa berlaku
+        | 3. membandingkan dengan input user
+        | 4. menghapus captcha setelah digunakan
+        |
+        */
+
+        if (
+            ! CaptchaController::verify(
+                $request,
+                $validated['captcha']
+            )
+        ) {
+
+            return response()->json([
+                'message' => 'Captcha tidak sesuai atau sudah kedaluwarsa.',
+
+                'errors' => [
+                    'captcha' => [
+                        'Captcha tidak sesuai atau sudah kedaluwarsa.',
+                    ],
+                ],
+            ], 422);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | BUAT USER
+        |--------------------------------------------------------------------------
+        |
+        | PENTING:
+        |
+        | Role SELALU "user".
+        |
+        | User tidak boleh mengirim:
+        |
+        | role=admin
+        | role=helpdesk
+        | role=pegawai
+        |
+        | dari frontend.
+        |
+        */
 
         $user = User::create([
             'name' => $validated['name'],
+
             'email' => $validated['email'],
+
             'password' => $validated['password'],
-            'kategori_pengguna' => $validated['kategori_pengguna'],
+
+            'kategori_pengguna' =>
+                $validated['kategori_pengguna'],
+
             'role' => 'user',
         ]);
 
-        // Kirim email verifikasi (pakai notifikasi bawaan Laravel)
+
+        /*
+        |--------------------------------------------------------------------------
+        | EMAIL VERIFICATION
+        |--------------------------------------------------------------------------
+        */
+
         event(new Registered($user));
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | RESPONSE
+        |--------------------------------------------------------------------------
+        */
+
         return response()->json([
-            'message' => 'Registrasi berhasil. Silakan cek email untuk verifikasi akun.',
+            'message' =>
+                'Registrasi berhasil. Silakan cek email untuk verifikasi akun.',
         ], 201);
     }
 
+
     /**
-     * Login. Ditolak kalau captcha salah, email/password salah,
-     * atau email belum diverifikasi.
+     * ============================================================
+     * LOGIN
+     * ============================================================
      */
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-            'captcha' => ['required', 'string'],
+            'email' => [
+                'required',
+                'email',
+            ],
+
+            'password' => [
+                'required',
+            ],
+
+            'captcha' => [
+                'required',
+                'string',
+            ],
         ]);
 
-        // Captcha dicek & langsung "dipakai habis" di dalam verify(),
-        // jadi tiap percobaan login butuh captcha baru.
-        if (! CaptchaController::verify($request, $credentials['captcha'])) {
+
+        /*
+        |--------------------------------------------------------------------------
+        | CAPTCHA LOGIN
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            ! CaptchaController::verify(
+                $request,
+                $credentials['captcha']
+            )
+        ) {
+
             return response()->json([
-                'message' => 'Captcha tidak sesuai atau sudah kedaluwarsa.',
-                'errors' => ['captcha' => ['Captcha tidak sesuai atau sudah kedaluwarsa.']],
+                'message' =>
+                    'Captcha tidak sesuai atau sudah kedaluwarsa.',
+
+                'errors' => [
+                    'captcha' => [
+                        'Captcha tidak sesuai atau sudah kedaluwarsa.',
+                    ],
+                ],
             ], 422);
         }
 
-        if (! Auth::attempt([
-            'email' => $credentials['email'],
-            'password' => $credentials['password'],
-        ])) {
+
+        /*
+        |--------------------------------------------------------------------------
+        | AUTHENTICATION
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            ! Auth::attempt([
+                'email' => $credentials['email'],
+                'password' => $credentials['password'],
+            ])
+        ) {
+
             return response()->json([
-                'message' => 'Email atau password salah.',
+                'message' =>
+                    'Email atau password salah.',
             ], 422);
         }
+
 
         $user = Auth::user();
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | EMAIL VERIFICATION
+        |--------------------------------------------------------------------------
+        */
+
         if (! $user->hasVerifiedEmail()) {
+
             Auth::logout();
 
             return response()->json([
-                'message' => 'Email belum diverifikasi. Silakan cek email Anda.',
+                'message' =>
+                    'Email belum diverifikasi. Silakan cek email Anda.',
             ], 403);
         }
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | REGENERATE SESSION
+        |--------------------------------------------------------------------------
+        */
+
         $request->session()->regenerate();
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | RESPONSE
+        |--------------------------------------------------------------------------
+        */
+
         return response()->json([
-            'message' => 'Login berhasil.',
+            'message' =>
+                'Login berhasil.',
+
             'user' => $user,
         ]);
     }
 
+
     /**
-     * Logout.
+     * ============================================================
+     * LOGOUT
+     * ============================================================
      */
     public function logout(Request $request)
     {
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
+
         $request->session()->regenerateToken();
 
         return response()->json([
-            'message' => 'Logout berhasil.',
+            'message' =>
+                'Logout berhasil.',
         ]);
     }
 
+
     /**
-     * User yang lagi login sekarang (dipanggil Vue pas app pertama kali load,
-     * buat ngecek status login).
+     * ============================================================
+     * CURRENT USER
+     * ============================================================
      */
     public function me(Request $request)
     {
@@ -112,21 +301,31 @@ class AuthController extends Controller
         ]);
     }
 
+
     /**
-     * Kirim ulang email verifikasi.
+     * ============================================================
+     * RESEND EMAIL VERIFICATION
+     * ============================================================
      */
     public function resendVerification(Request $request)
     {
         if ($request->user()->hasVerifiedEmail()) {
+
             return response()->json([
-                'message' => 'Email sudah diverifikasi.',
+                'message' =>
+                    'Email sudah diverifikasi.',
             ]);
         }
 
-        $request->user()->sendEmailVerificationNotification();
+
+        $request
+            ->user()
+            ->sendEmailVerificationNotification();
+
 
         return response()->json([
-            'message' => 'Email verifikasi sudah dikirim ulang.',
+            'message' =>
+                'Email verifikasi sudah dikirim ulang.',
         ]);
     }
 }

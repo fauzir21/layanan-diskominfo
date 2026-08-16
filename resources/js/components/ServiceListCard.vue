@@ -1,57 +1,123 @@
 <template>
 
-<div
-:class="[
-    'rounded-[clamp(16px,2.5vw,28px)] bg-white shadow-md h-full flex flex-col',
-    compact ? 'w-full p-[clamp(14px,2.2vw,24px)]' : 'w-[360px] p-7'
-]">
+    <article
+        :class="[
+            'w-full rounded-[clamp(16px,1.8vw,24px)] bg-white shadow-md',
+            'transition duration-200 hover:-translate-y-0.5 hover:shadow-xl',
+            'flex h-full flex-col',
+            compact
+                ? 'p-[clamp(14px,1.4vw,20px)]'
+                : 'p-7'
+        ]"
+    >
 
-    <i
-    :class="compact ? 'text-[clamp(16px,2vw,24px)]' : 'text-[26px]'"
-    class="bi bi-file-earmark-text text-gray-800"></i>
+        <!-- Icon -->
 
-    <h3
-    :class="compact ? 'text-[clamp(13px,1.5vw,18px)]' : 'text-xl'"
-    class="mt-[clamp(6px,1vw,14px)] font-semibold text-gray-800 line-clamp-1">
-
-        {{ title }}
-
-    </h3>
-
-    <p
-    :class="compact ? 'text-[clamp(11px,1.2vw,14px)] mt-[clamp(4px,0.8vw,10px)] line-clamp-2' : 'text-[15px] mt-3 line-clamp-3'"
-    class="leading-[1.5] text-gray-500 flex-1">
-
-        {{ description }}
-
-    </p>
-
-    <div :class="compact ? 'mt-[clamp(8px,1.4vw,14px)]' : 'mt-5'">
-
-        <router-link
-        :to="link"
-        :class="compact ? 'text-[clamp(10px,1.2vw,14px)] px-[clamp(12px,1.8vw,20px)] py-[clamp(6px,1vw,10px)] gap-1.5' : 'text-sm px-5 py-2.5 gap-2'"
-        class="inline-flex items-center bg-[#0A66C2] hover:bg-[#0959aa] transition text-white font-semibold rounded-full whitespace-nowrap"
+        <div
+            class="flex items-center"
         >
 
-            {{ buttonText }}
+            <i
+                class="bi bi-file-earmark-text text-gray-800"
+                :class="
+                    compact
+                        ? 'text-[clamp(16px,1.8vw,22px)]'
+                        : 'text-[26px]'
+                "
+            ></i>
 
-            <i class="bi bi-arrow-right"></i>
+        </div>
 
-        </router-link>
 
-    </div>
+        <!-- Title -->
 
-</div>
+        <h3
+            :class="
+                compact
+                    ? 'mt-[clamp(6px,0.7vw,10px)] text-[clamp(14px,1.25vw,17px)]'
+                    : 'mt-3 text-xl'
+            "
+            class="line-clamp-1 font-semibold leading-tight text-gray-800"
+        >
+            {{ title }}
+        </h3>
+
+
+        <!-- Description -->
+
+        <p
+            :class="
+                compact
+                    ? 'mt-[clamp(5px,0.7vw,9px)] line-clamp-3 text-[clamp(11px,1vw,13px)]'
+                    : 'mt-3 line-clamp-3 text-[15px]'
+            "
+            class="flex-1 leading-[1.45] text-gray-500"
+        >
+            {{ description }}
+        </p>
+
+
+        <!-- Button -->
+
+        <div
+            :class="
+                compact
+                    ? 'mt-[clamp(10px,1vw,14px)]'
+                    : 'mt-5'
+            "
+        >
+
+            <router-link
+                :to="link"
+                :class="
+                    compact
+                        ? 'px-[clamp(12px,1.5vw,18px)] py-[clamp(6px,0.8vw,9px)] text-[clamp(10px,0.95vw,13px)]'
+                        : 'px-5 py-2.5 text-sm'
+                "
+                class="inline-flex items-center gap-2 rounded-full bg-[#0A66C2] font-semibold text-white transition hover:bg-[#0959aa]"
+            >
+
+                {{ buttonText }}
+
+                <i class="bi bi-arrow-right"></i>
+
+            </router-link>
+
+        </div>
+
+    </article>
 
 </template>
 
+
 <script setup>
 defineProps({
-    title: { type: String, default: 'Nama Kategori Layanan' },
-    description: { type: String, default: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua....' },
-    link: { type: String, default: '/' },
-    compact: { type: Boolean, default: false },
-    buttonText: { type: String, default: 'Lihat Persyaratan' },
+
+    title: {
+        type: String,
+        default: 'Nama Kategori Layanan',
+    },
+
+    description: {
+        type: String,
+        default:
+            'Deskripsi layanan.',
+    },
+
+    link: {
+        type: String,
+        default: '/',
+    },
+
+    compact: {
+        type: Boolean,
+        default: false,
+    },
+
+    buttonText: {
+        type: String,
+        default: 'Lihat Persyaratan',
+    },
+
 })
 </script>
