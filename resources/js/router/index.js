@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
 import Home from '../pages/Home.vue'
+import Login from '../pages/Login.vue'
 import Register from '../pages/Register.vue'
 import Services from '../pages/Services.vue'
 import LayananDetail from '../pages/LayananDetail.vue'
@@ -18,6 +19,12 @@ const routes = [
     {
         path: '/',
         component: Home,
+    },
+
+    {
+        path: '/login',
+        name: 'login',
+        component: Login,
     },
 
     {
@@ -54,7 +61,12 @@ const routes = [
         component: Dashboard,
         meta: {
             requiresAuth: true,
-            roles: ['admin', 'helpdesk', 'pegawai', 'user'],
+            roles: [
+                'admin',
+                'helpdesk',
+                'pegawai',
+                'user',
+            ],
         },
     },
 
@@ -72,7 +84,11 @@ const routes = [
         component: Permohonan,
         meta: {
             requiresAuth: true,
-            roles: ['admin', 'helpdesk', 'pegawai'],
+            roles: [
+                'admin',
+                'helpdesk',
+                'pegawai',
+            ],
         },
     },
 
@@ -81,7 +97,12 @@ const routes = [
         component: DashboardPermohonan,
         meta: {
             requiresAuth: true,
-            roles: ['admin', 'helpdesk', 'pegawai', 'user'],
+            roles: [
+                'admin',
+                'helpdesk',
+                'pegawai',
+                'user',
+            ],
         },
     },
 
@@ -90,7 +111,12 @@ const routes = [
         component: PermohonanDetail,
         meta: {
             requiresAuth: true,
-            roles: ['admin', 'helpdesk', 'pegawai', 'user'],
+            roles: [
+                'admin',
+                'helpdesk',
+                'pegawai',
+                'user',
+            ],
         },
     },
 
@@ -99,7 +125,11 @@ const routes = [
         component: PermohonanDetail,
         meta: {
             requiresAuth: true,
-            roles: ['admin', 'helpdesk', 'pegawai'],
+            roles: [
+                'admin',
+                'helpdesk',
+                'pegawai',
+            ],
         },
     },
 ]
@@ -116,17 +146,30 @@ router.beforeEach(async (to) => {
         await authStore.fetchUser()
     }
 
-    const requiresAuth = to.meta.requiresAuth
-    const allowedRoles = to.meta.roles
+    const requiresAuth =
+        to.meta.requiresAuth
 
-    if (requiresAuth && !authStore.user) {
-        return '/'
+    const allowedRoles =
+        to.meta.roles
+
+    if (
+        requiresAuth &&
+        !authStore.user
+    ) {
+        return {
+            path: '/login',
+            query: {
+                redirect: to.fullPath,
+            },
+        }
     }
 
     if (
         requiresAuth &&
         allowedRoles &&
-        !allowedRoles.includes(authStore.user?.role)
+        !allowedRoles.includes(
+            authStore.user?.role
+        )
     ) {
         return '/dashboard'
     }

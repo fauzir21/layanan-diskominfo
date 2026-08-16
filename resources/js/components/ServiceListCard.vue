@@ -1,83 +1,42 @@
 <template>
 
-    <article
-        :class="[
-            'w-full rounded-[clamp(16px,1.8vw,24px)] bg-white shadow-md',
-            'transition duration-200 hover:-translate-y-0.5 hover:shadow-xl',
-            'flex h-full flex-col',
-            compact
-                ? 'p-[clamp(14px,1.4vw,20px)]'
-                : 'p-7'
-        ]"
-    >
+    <article class="service-card">
 
         <!-- Icon -->
 
-        <div
-            class="flex items-center"
-        >
+        <div class="service-icon">
 
-            <i
-                class="bi bi-file-earmark-text text-gray-800"
-                :class="
-                    compact
-                        ? 'text-[clamp(16px,1.8vw,22px)]'
-                        : 'text-[26px]'
-                "
-            ></i>
+            <i class="bi bi-file-earmark-text"></i>
 
         </div>
 
 
         <!-- Title -->
 
-        <h3
-            :class="
-                compact
-                    ? 'mt-[clamp(6px,0.7vw,10px)] text-[clamp(14px,1.25vw,17px)]'
-                    : 'mt-3 text-xl'
-            "
-            class="line-clamp-1 font-semibold leading-tight text-gray-800"
-        >
+        <h2 class="service-title">
             {{ title }}
-        </h3>
+        </h2>
 
 
         <!-- Description -->
 
-        <p
-            :class="
-                compact
-                    ? 'mt-[clamp(5px,0.7vw,9px)] line-clamp-3 text-[clamp(11px,1vw,13px)]'
-                    : 'mt-3 line-clamp-3 text-[15px]'
-            "
-            class="flex-1 leading-[1.45] text-gray-500"
-        >
+        <p class="service-description">
             {{ description }}
         </p>
 
 
         <!-- Button -->
 
-        <div
-            :class="
-                compact
-                    ? 'mt-[clamp(10px,1vw,14px)]'
-                    : 'mt-5'
-            "
-        >
+        <div class="service-action">
 
             <router-link
                 :to="link"
-                :class="
-                    compact
-                        ? 'px-[clamp(12px,1.5vw,18px)] py-[clamp(6px,0.8vw,9px)] text-[clamp(10px,0.95vw,13px)]'
-                        : 'px-5 py-2.5 text-sm'
-                "
-                class="inline-flex items-center gap-2 rounded-full bg-[#0A66C2] font-semibold text-white transition hover:bg-[#0959aa]"
+                class="service-button"
             >
 
-                {{ buttonText }}
+                <span>
+                    {{ buttonText }}
+                </span>
 
                 <i class="bi bi-arrow-right"></i>
 
@@ -91,11 +50,12 @@
 
 
 <script setup>
+
 defineProps({
 
     title: {
         type: String,
-        default: 'Nama Kategori Layanan',
+        default: 'Nama Layanan',
     },
 
     description: {
@@ -109,15 +69,286 @@ defineProps({
         default: '/',
     },
 
-    compact: {
-        type: Boolean,
-        default: false,
-    },
-
     buttonText: {
         type: String,
-        default: 'Lihat Persyaratan',
+        default: 'Detail Layanan',
     },
 
 })
+
 </script>
+
+
+<style scoped>
+
+.service-card {
+
+    display: flex;
+
+    flex-direction: column;
+
+    width: 100%;
+
+    min-height:
+        clamp(
+            205px,
+            16vw,
+            230px
+        );
+
+    padding:
+        clamp(20px, 2vw, 24px)
+        clamp(20px, 2.6vw, 37px);
+
+    background: rgba(
+        255,
+        255,
+        255,
+        0.94
+    );
+
+    border:
+        1.3px solid #151515;
+
+    border-radius:
+        clamp(17px, 1.8vw, 22px);
+
+    box-shadow:
+        0 2px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.03
+        );
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+
+}
+
+
+.service-card:hover {
+
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 10px 25px
+        rgba(
+            0,
+            0,
+            0,
+            0.08
+        );
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| ICON
+|--------------------------------------------------------------------------
+*/
+
+.service-icon {
+
+    display: flex;
+
+    align-items: center;
+
+    height: 25px;
+
+    color: #151515;
+
+}
+
+
+.service-icon i {
+
+    font-size:
+        clamp(
+            20px,
+            1.7vw,
+            24px
+        );
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| TITLE
+|--------------------------------------------------------------------------
+*/
+
+.service-title {
+
+    margin:
+        clamp(10px, 1vw, 13px)
+        0
+        0;
+
+    color: #151515;
+
+    font-family:
+        'Poppins',
+        sans-serif;
+
+    font-size:
+        clamp(
+            17px,
+            1.45vw,
+            20px
+        );
+
+    font-weight: 500;
+
+    line-height: 1.3;
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| DESCRIPTION
+|--------------------------------------------------------------------------
+*/
+
+.service-description {
+
+    display: -webkit-box;
+
+    margin:
+        clamp(8px, 0.9vw, 11px)
+        0
+        0;
+
+    overflow: hidden;
+
+    color: #777B8E;
+
+    font-family:
+        'Poppins',
+        sans-serif;
+
+    font-size:
+        clamp(
+            12px,
+            1vw,
+            14px
+        );
+
+    font-weight: 400;
+
+    line-height: 1.65;
+
+    -webkit-box-orient: vertical;
+
+    -webkit-line-clamp: 3;
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| ACTION
+|--------------------------------------------------------------------------
+*/
+
+.service-action {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    margin-top: auto;
+
+    padding-top: 12px;
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| BUTTON
+|--------------------------------------------------------------------------
+*/
+
+.service-button {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    min-width:
+        clamp(
+            120px,
+            10vw,
+            136px
+        );
+
+    height:
+        clamp(
+            27px,
+            2.3vw,
+            30px
+        );
+
+    padding:
+        0
+        13px;
+
+    background: #1554F0;
+
+    border-radius: 999px;
+
+    color: white;
+
+    font-family:
+        'Poppins',
+        sans-serif;
+
+    font-size:
+        clamp(
+            9px,
+            0.75vw,
+            11px
+        );
+
+    font-weight: 400;
+
+    text-decoration: none;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+
+}
+
+
+.service-button:hover {
+
+    background: #0d43c7;
+
+    transform: translateX(2px);
+
+}
+
+
+.service-button i {
+
+    font-size:
+        clamp(
+            12px,
+            1vw,
+            14px
+        );
+
+}
+
+</style>
